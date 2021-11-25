@@ -226,10 +226,14 @@ namespace cx_auto_sign
                                     var course = userConfig.GetCourse(chatId);
                                     if (course == null)
                                     {
-                                        log.Information("课程缓存中不存在该课程");
-                                        course.CourseName = courseName;
-                                        course.CourseId = courseInfo?["courseid"]?.Value<string>();
-                                        course.ClassId = courseInfo?["classid"]?.Value<string>();
+                                        log.Information("该课程不在课程列表");
+                                        var json = userConfig.AddCourse(chatId);
+                                        json[nameof(CourseDataConfig.CourseName)] = courseName;
+                                        json[nameof(CourseDataConfig.CourseId)]
+                                            = courseInfo?["courseid"]?.Value<string>();
+                                        json[nameof(CourseDataConfig.ClassId)] 
+                                            = courseInfo?["classid"]?.Value<string>();
+                                        course = new CourseDataConfig(json);
                                         userConfig.Save();
                                     }
 

@@ -79,6 +79,13 @@ namespace cx_auto_sign
             return course == null ? null : new CourseDataConfig(course);
         }
 
+        public JObject AddCourse(string chatId)
+        {
+            var course = new JObject();
+            _courses[chatId] = course;
+            return course;
+        }
+
         public void Save()
         {
             if (!Directory.Exists(Dir))
