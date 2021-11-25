@@ -4,7 +4,6 @@ using McMaster.Extensions.CommandLineUtils;
 using Newtonsoft.Json.Linq;
 using Serilog;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Threading;
@@ -25,8 +24,6 @@ namespace cx_auto_sign
         // ReSharper restore UnassignedGetOnlyAutoProperty
 
         private WebsocketClient _ws;
-
-        private readonly Dictionary<string, CountCache> _taskCache = new();
 
         protected override async Task<int> OnExecuteAsync(CommandLineApplication app)
         {
@@ -49,11 +46,6 @@ namespace cx_auto_sign
             Log.Information("成功登录账号");
             var (imToken, uid) = await client.GetImTokenAsync();
 
-            Log.Information("正在缓存已有任务");
-            await InitTaskCache(client);
-            Log.Information("已缓存已有任务");
-
-            // if (true) return 0;
             var enableWeiApi = false;
             var webApi = userConfig.WebApi;
             if (webApi != null)
@@ -102,7 +94,7 @@ namespace cx_auto_sign
                     Log.Warning("CXIM: Reconnection happened, type: {Type}", info.Type));
                 _ws.DisconnectionHappened.Subscribe(info => Log.Error(
                     info.Exception,
-                    @"CXIM: Disconnection happened: {Type} {Status}",
+                    "CXIM: Disconnection happened: {Type} {Status}",
                     info.Type,
                     info.CloseStatus
                 ));
@@ -112,13 +104,15 @@ namespace cx_auto_sign
                     var startTime = GetTimestamp();
                     try
                     {
-                        Log.Information("CXIM: Message received: {Message}", msg);
+                        Log.Information(
+                            "CXIM: Message received: {Size} {Message}",
+                            msg.Text.Length,
+                            msg.Text
+                        );
                         if (msg.Text.StartsWith("o"))
                         {
                             Log.Information("CXIM 登录");
-                            var loginPackage = Cxim.BuildLoginPackage(uid, imToken);
-                            Log.Information("CXIM: Message send: {Message}", loginPackage);
-                            _ws.Send(loginPackage);
+                            WsSend(Cxim.BuildLoginPackage(uid, imToken));
                             return;
                         }
 
@@ -129,112 +123,125 @@ namespace cx_auto_sign
                         var arrMsg = JArray.Parse(msg.Text[1..]);
                         foreach (var message in arrMsg)
                         {
-                            Logger log = null;
+                            var pkgBytes = Convert.FromBase64String(message.Value<string>());
+                            if (pkgBytes.Length <= 5)
+                            {
+                                continue;
+                            }
+
+                            var header = new byte[5];
+                            Array.Copy(pkgBytes, header, 5);
+                            if (header.SequenceEqual(new byte[] { 0x08, 0x00, 0x40, 0x02, 0x4a }))
+                            {
+                                if (Cxim.GetChatId(pkgBytes) == null)
+                                {
+                                    Log.Information("不是课程消息");
+                                    continue;
+                                }
+                                Log.Information("接收到课程消息并请求获取活动信息");
+                                var bytes = (byte[]) pkgBytes.Clone();
+                                bytes[3] = 0x00;
+                                bytes[6] = 0x1a;
+                                WsSend(Cxim.Pack(bytes.Concat(new byte[] {0x58, 0x00}).ToArray()));
+                                continue;
+                            }
+                            
+                            if (!header.SequenceEqual(Cxim.BytesCourseHeader))
+                            {
+                                continue;
+                            }
+
+                            Log.Information("接收到课程消息");
+
+                            string chatId;
                             try
                             {
-                                var pkgBytes = Convert.FromBase64String(message.Value<string>());
-                                if (pkgBytes.Length <= 5)
-                                {
-                                    continue;
-                                }
+                                chatId = Cxim.GetChatId(pkgBytes);
+                            }
+                            catch (Exception e)
+                            {
+                                throw new Exception("解析失败，无法获取 ChatId", e);
+                            }
 
-                                var header = new byte[5];
-                                Array.Copy(pkgBytes, header, 5);
-                                if (!header.SequenceEqual(new byte[] { 0x08, 0x00, 0x40, 0x02, 0x4a }))
-                                {
-                                    continue;
-                                }
-
-                                if (pkgBytes[5] != 0x2b)
-                                {
-                                    Log.Warning("可能不是课程消息");
-                                    continue;
-                                }
-
-                                Log.Information("接收到课程消息");
-
-                                string chatId;
+                            var index = 11;
+                            
+                            while (true)
+                            {
+                                Logger log = null;
                                 try
                                 {
-                                    chatId = Cxim.GetChatId(pkgBytes);
-                                }
-                                catch (Exception e)
-                                {
-                                    throw new Exception("解析失败，无法获取 ChatId", e);
-                                }
+                                    int sessionEnd;
+                                    if (pkgBytes[index++] != 0x22)
+                                    {
+                                        break;
+                                    }
+                                    if ((sessionEnd = Cxim.ReadEnd2(pkgBytes, ref index)) < 0
+                                        || pkgBytes[index++] != 0x08)
+                                    {
+                                        Log.Error("解析 Session 失败");
+                                        break;
+                                    }
+                                    Log.Information("释放 Session");
+                                    WsSend(Cxim.BuildReleaseSession(chatId, pkgBytes[index..(index += 9)]));
+                                    ++index;
+                                    var att = Cxim.GetAttachment(pkgBytes, ref index, sessionEnd);
+                                    if (att == null)
+                                    {
+                                        Log.Error("解析失败，无法获取 Attachment");
+                                        continue;
+                                    }
 
-                                log = Notification.CreateLogger(auConfig, GetTimestamp());
-                                log.Information("消息时间：{Time}", startTime);
-                                log.Information("ChatId: {ChatId}", chatId);
+                                    log = Notification.CreateLogger(auConfig, GetTimestamp());
+                                    log.Information("消息时间：{Time}", startTime);
+                                    log.Information("ChatId: {ChatId}", chatId);
+                                    
+                                    var activeId = att["aid"]?.Value<string>();
+                                    if (activeId is null or "0")
+                                    {
+                                        Log.Error("解析失败，未找到 ActiveId");
+                                        Log.Error(att.ToString());
+                                        log = null;
+                                        continue;
+                                    }
+                                    log.Information("ActiveId: {ActiveId}", activeId);
 
-                                var course = userConfig.GetCourse(chatId);
-                                if (course == null)
-                                {
-                                    log.Information("没有会话对应的课程");
-                                    await userConfig.UpdateAsync(client);
-                                    course = userConfig.GetCourse(chatId);
+                                    var courseInfo = att["courseInfo"];
+                                    if (courseInfo == null)
+                                    {
+                                        log.Error("解析失败，未找到 courseInfo");
+                                        Log.Error(att.ToString());
+                                    }
+                                    var courseName = courseInfo?["coursename"]?.Value<string>();
+                                    log.Information("收到来自课程 {courseName} 的活动：{type} - {title}",
+                                        courseName,
+                                        att["atypeName"]?.Value<string>(),
+                                        att["title"]?.Value<string>()
+                                    );
+
+                                    if (att["atype"]?.Value<int>() != 2)
+                                    {
+                                        Log.Error("不是签到活动");
+                                    }
+
+                                    var course = userConfig.GetCourse(chatId);
                                     if (course == null)
                                     {
-                                        Log.Information("此用户可能为该课程的教师");
-                                        log = null;
-                                        continue;
-                                    }
-                                }
-                                log.Information("获取 {CourseName} 活动任务中",
-                                    course.CourseName);
-                                var courseConfig = new CourseConfig(appConfig, userConfig, course);
-                                var tasks = await client.GetSignTasksAsync(course.CourseId, course.ClassId);
-                                var count = tasks.Count;
-                                if (count == 0)
-                                {
-                                    Log.Error("没有活动任务");
-                                    log = null;
-                                    continue;
-                                }
-                               
-                                CountCache countCache;
-                                lock (_taskCache)
-                                {
-                                    if (!_taskCache.TryGetValue(chatId, out countCache))
-                                    {
-                                        countCache = new CountCache();
-                                        _taskCache[chatId] = countCache;
-                                    }
-                                }
-                                try
-                                {
-                                    await countCache.Lock.WaitAsync();
-                                    count -= countCache.Count;
-                                    if (count <= 0)
-                                    {
-                                        // 当教师发布作业的等操作也触发「接收到课程消息」
-                                        // 但这些操作不会体现在「活动列表」中
-                                        Log.Warning("可能不是活动消息");
-                                        log = null;
-                                        continue;
-                                    }
-                                    countCache.Count++;
-                                    var task = tasks[count - 1];
-                                    var taskTime = task["startTime"]!.Value<long>();
-                                    log.Information("任务时间: {Time}", taskTime);
-                                    var type = task["type"];
-                                    if (type?.Type != JTokenType.Integer || type.Value<int>() != 2)
-                                    {
-                                        Log.Warning("不是签到任务");
-                                        log = null;
-                                        continue;
+                                        log.Information("课程缓存中不存在该课程");
+                                        course.CourseName = courseName;
+                                        course.CourseId = courseInfo?["courseid"]?.Value<string>();
+                                        course.ClassId = courseInfo?["classid"]?.Value<string>();
+                                        userConfig.Save();
                                     }
 
-                                    var activeId = task["id"]?.ToString();
-                                    if (string.IsNullOrEmpty(activeId))
-                                    {
-                                        Log.Error("解析失败，ActiveId 为空");
-                                        log = null;
-                                        continue;
-                                    }
-                                    log.Information("准备签到 ActiveId: {ActiveId}", activeId);
-
+                                    var courseConfig = new CourseConfig(appConfig, userConfig, course);
                                     var data = await client.GetActiveDetailAsync(activeId);
+                                    if (data["activeType"]?.Value<int>() != 2)
+                                    {
+                                        log.Warning("不是签到活动");
+                                        log = null;
+                                        continue;
+                                    }
+
                                     var signType = GetSignType(data);
                                     log.Information("签到类型：{Type}",
                                         GetSignTypeName(signType));
@@ -297,6 +304,8 @@ namespace cx_auto_sign
                                             break;
                                     }
 
+                                    var taskTime = data["starttime"]!.Value<long>();
+                                    log.Information("任务时间: {Time}", taskTime);
                                     log.Information("签到准备完毕，耗时：{Time}ms",
                                         GetTimestamp() - startTime);
                                     var takenTime = GetTimestamp() - taskTime;
@@ -332,20 +341,16 @@ namespace cx_auto_sign
                                     log.Information(content);
                                     Notification.Status(log, ok);
                                 }
+                                catch (Exception e)
+                                {
+                                    (log ?? Log.Logger).Error(e, "CXIM 接收到课程消息时出错");
+                                }
                                 finally
                                 {
-                                    countCache.Lock.Release();
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                (log ?? Log.Logger).Error(e, "CXIM 接收到课程消息时出错");
-                            }
-                            finally
-                            {
-                                if (log != null)
-                                {
-                                    Notification.Send(log);
+                                    if (log != null)
+                                    {
+                                        Notification.Send(log);
+                                    }
                                 }
                             }
                         }
@@ -403,27 +408,10 @@ namespace cx_auto_sign
             return (DateTime.Now - DateTime1970).TotalMilliseconds;
         }
 
-        private async Task InitTaskCache(CxSignClient client)
+        private void WsSend(string msg)
         {
-            var courses = new JObject();
-            await client.GetCoursesAsync(courses);
-            foreach (var (chatId, course) in courses)
-            {
-                var cache = new CountCache();
-                var tasks = await client.GetSignTasksAsync(
-                    (string) course["CourseId"],
-                    (string) course["ClassId"]
-                );
-                cache.Count = tasks.Count;
-                // Log.Information("{CourseName} - {ClassName}: {Count}", 
-                //     course["CourseName"]!.ToString(), 
-                //     course["ClassName"]!.ToString(),
-                //     cache.Count);
-                lock (_taskCache)
-                {
-                    _taskCache[chatId] = cache;
-                }
-            }
+            Log.Information("CXIM: Message send: {Message}", msg);
+            _ws.Send(msg);
         }
     }
 }

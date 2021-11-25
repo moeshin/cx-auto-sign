@@ -6,9 +6,9 @@ namespace cx_auto_sign
     {
         private readonly JToken _data;
 
-        public readonly string CourseId;
-        public readonly string ClassId;
-        public readonly string CourseName;
+        public string CourseId;
+        public string ClassId;
+        public string CourseName;
 
         public CourseDataConfig(JToken data)
         {

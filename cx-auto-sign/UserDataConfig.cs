@@ -79,7 +79,7 @@ namespace cx_auto_sign
             return course == null ? null : new CourseDataConfig(course);
         }
 
-        private void Save()
+        public void Save()
         {
             if (!Directory.Exists(Dir))
             {
