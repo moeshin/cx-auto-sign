@@ -220,7 +220,10 @@ namespace cx_auto_sign
 
                                     if (att["atype"]?.Value<int>() != 2)
                                     {
-                                        Log.Error("不是签到活动");
+                                        log.Warning("不是签到活动，atype：{v}",
+                                            att["atype"]?.Value<string>());
+                                        log = null;
+                                        continue;
                                     }
 
                                     var course = userConfig.GetCourse(chatId);
@@ -241,7 +244,8 @@ namespace cx_auto_sign
                                     var data = await client.GetActiveDetailAsync(activeId);
                                     if (data["activeType"]?.Value<int>() != 2)
                                     {
-                                        log.Warning("不是签到活动");
+                                        log.Warning("不是签到活动，activeType：{v}",
+                                            data["atype"]?.Value<string>());
                                         log = null;
                                         continue;
                                     }
