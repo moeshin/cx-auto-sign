@@ -24,4 +24,13 @@
     <ProjectReference Include="..\CxSignHelper\CxSignHelper.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ScriptFiles Include="..\scripts\*.*" />
+  </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Copy SourceFiles="@(ScriptFiles)" DestinationFolder="$(OutputPath)" />
+  </Target>
+  <Target Name="PostPublish" AfterTargets="Publish">
+    <Copy SourceFiles="@(ScriptFiles)" DestinationFolder="$(PublishDir)" />
+  </Target>
 </Project>

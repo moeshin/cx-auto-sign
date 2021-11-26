@@ -18,9 +18,9 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
     - name: Publish
-      run: dotnet publish -c Release -o out 
+      run: ./publish.sh
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v2
       with: 
         name: cx-auto-sign-publish
-        path: "out"
+        path: out/cx-auto-sign.tar.gz
