@@ -163,14 +163,14 @@ namespace cx_auto_sign
                                 throw new Exception("解析失败，无法获取 ChatId", e);
                             }
 
-                            var index = 11;
-                            
+                            var sessionEnd = 11;
+
                             while (true)
                             {
                                 Logger log = null;
                                 try
                                 {
-                                    int sessionEnd;
+                                    var index = sessionEnd;
                                     if (pkgBytes[index++] != 0x22)
                                     {
                                         break;
