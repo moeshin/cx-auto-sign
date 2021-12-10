@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Newtonsoft.Json.Linq;
-using Serilog;
 
 namespace cx_auto_sign
 {
@@ -94,7 +93,7 @@ namespace cx_auto_sign
             var e = start += length;
             var json = JObject.Parse(Encoding.Default.GetString(bytes[s..e]));
             // Log.Information("Cxim: Attachment {v}", json.ToString());
-            return start > end ? null : json["att_chat_course"];
+            return start > end ? null : json;
         }
 
         private static int BytesIndexOf(IReadOnlyList<byte> bytes, IReadOnlyList<byte> value,

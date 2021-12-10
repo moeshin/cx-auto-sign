@@ -191,37 +191,63 @@ namespace cx_auto_sign
                                         continue;
                                     }
 
+                                    var attType = att["attachmentType"]?.Value<int>();
+                                    if (attType != 15)
+                                    {
+                                        Log.Error("解析失败，attachmentType != 15");
+                                        Log.Error(att.ToString());
+                                        continue;
+                                    }
+
+                                    var attCourse = att["att_chat_course"];
+                                    if (attCourse == null)
+                                    {
+                                        Log.Error("解析失败，无法获取 att_chat_course");
+                                        Log.Error(att.ToString());
+                                        continue;
+                                    }
+
                                     log = Notification.CreateLogger(auConfig, GetTimestamp());
                                     log.Information("消息时间：{Time}", startTime);
                                     log.Information("ChatId: {ChatId}", chatId);
                                     
-                                    var activeId = att["aid"]?.Value<string>();
+                                    var activeId = attCourse["aid"]?.Value<string>();
                                     if (activeId is null or "0")
                                     {
-                                        Log.Error("解析失败，未找到 ActiveId");
-                                        Log.Error(att.ToString());
+                                        log.Error("解析失败，未找到 ActiveId");
+                                        log.Error(attCourse.ToString());
                                         log = null;
                                         continue;
                                     }
                                     log.Information("ActiveId: {ActiveId}", activeId);
 
-                                    var courseInfo = att["courseInfo"];
+                                    var courseInfo = attCourse["courseInfo"];
                                     if (courseInfo == null)
                                     {
                                         log.Error("解析失败，未找到 courseInfo");
-                                        Log.Error(att.ToString());
+                                        log.Error(attCourse.ToString());
+                                        log = null;
+                                        continue;
                                     }
                                     var courseName = courseInfo?["coursename"]?.Value<string>();
                                     log.Information("收到来自课程 {courseName} 的活动：{type} - {title}",
                                         courseName,
-                                        att["atypeName"]?.Value<string>(),
-                                        att["title"]?.Value<string>()
+                                        attCourse["atypeName"]?.Value<string>(),
+                                        attCourse["title"]?.Value<string>()
                                     );
 
-                                    if (att["atype"]?.Value<int>() != 2)
+                                    var activeType = attCourse["activeType"]?.Value<int>();
+                                    if (activeType != null && activeType != 2)
                                     {
-                                        log.Warning("不是签到活动，atype：{v}",
-                                            att["atype"]?.Value<string>());
+                                        log.Error("不是签到活动，attActiveType：{v}", activeType);
+                                        log = null;
+                                        continue;
+                                    }
+
+                                    var aType = attCourse["atype"]?.Value<int>();
+                                    if (aType != 0 && aType != 2)
+                                    {
+                                        log.Error("不是签到活动，atype：{v}", aType);
                                         log = null;
                                         continue;
                                     }
@@ -242,10 +268,11 @@ namespace cx_auto_sign
 
                                     var courseConfig = new CourseConfig(appConfig, userConfig, course);
                                     var data = await client.GetActiveDetailAsync(activeId);
-                                    if (data["activeType"]?.Value<int>() != 2)
+
+                                    activeType = data["activeType"]?.Value<int>();
+                                    if (activeType != 2)
                                     {
-                                        log.Warning("不是签到活动，activeType：{v}",
-                                            data["atype"]?.Value<string>());
+                                        log.Error("不是签到活动，activeType：{v}", activeType);
                                         log = null;
                                         continue;
                                     }
