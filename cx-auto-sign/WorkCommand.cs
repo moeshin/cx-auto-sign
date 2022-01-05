@@ -236,9 +236,9 @@ namespace cx_auto_sign
                                         attCourse["title"]?.Value<string>()
                                     );
 
-                                    var activeType = attCourse["activeType"]?.Value<int>();
-                                    log.Information("activeType: {V}", activeType);
-                                    if (activeType != null && activeType != 0 && activeType != 2)
+                                    var attActiveType = attCourse["activeType"]?.Value<int>();
+                                    log.Information("attActiveType: {V}", attActiveType);
+                                    if (attActiveType != null && attActiveType != 0 && attActiveType != 2)
                                     {
                                         log.Error("不是签到活动");
                                         log = null;
@@ -277,7 +277,8 @@ namespace cx_auto_sign
                                     var courseConfig = new CourseConfig(appConfig, userConfig, course);
                                     var data = await client.GetActiveDetailAsync(activeId);
 
-                                    activeType = data["activeType"]?.Value<int>();
+                                    var activeType = data["activeType"]?.Value<int>();
+                                    log.Information("activeType: {V}", activeType);
                                     if (activeType != 2)
                                     {
                                         log.Error("不是签到活动，activeType：{V}", activeType);
