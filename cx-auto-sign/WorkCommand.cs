@@ -237,17 +237,25 @@ namespace cx_auto_sign
                                     );
 
                                     var activeType = attCourse["activeType"]?.Value<int>();
-                                    if (activeType != null && activeType != 2)
+                                    log.Information("activeType: {V}", activeType);
+                                    if (activeType != null && activeType != 0 && activeType != 2)
                                     {
-                                        log.Error("不是签到活动，attActiveType：{V}", activeType);
+                                        log.Error("不是签到活动");
                                         log = null;
                                         continue;
                                     }
 
                                     var aType = attCourse["atype"]?.Value<int>();
+                                    log.Information("aType: {V}", aType);
                                     if (aType != 0 && aType != 2)
                                     {
-                                        log.Error("不是签到活动，atype：{V}", aType);
+                                        /*
+                                        0: 签到
+                                        2: 签到
+                                        4: 抢答
+                                        11: 选人
+                                         */
+                                        log.Error("不是签到活动");
                                         log = null;
                                         continue;
                                     }
