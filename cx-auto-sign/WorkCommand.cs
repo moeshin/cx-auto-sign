@@ -195,7 +195,7 @@ namespace cx_auto_sign
                                     if (attType != 15)
                                     {
                                         Log.Error("解析失败，attachmentType != 15");
-                                        Log.Error(att.ToString());
+                                        Log.Error("{V}", att.ToString());
                                         continue;
                                     }
 
@@ -203,7 +203,7 @@ namespace cx_auto_sign
                                     if (attCourse == null)
                                     {
                                         Log.Error("解析失败，无法获取 att_chat_course");
-                                        Log.Error(att.ToString());
+                                        Log.Error("{V}", att.ToString());
                                         continue;
                                     }
 
@@ -215,7 +215,7 @@ namespace cx_auto_sign
                                     if (activeId is null or "0")
                                     {
                                         log.Error("解析失败，未找到 ActiveId");
-                                        log.Error(attCourse.ToString());
+                                        log.Error("{V}", att.ToString());
                                         log = null;
                                         continue;
                                     }
@@ -225,12 +225,12 @@ namespace cx_auto_sign
                                     if (courseInfo == null)
                                     {
                                         log.Error("解析失败，未找到 courseInfo");
-                                        log.Error(attCourse.ToString());
+                                        log.Error("{V}", att.ToString());
                                         log = null;
                                         continue;
                                     }
                                     var courseName = courseInfo?["coursename"]?.Value<string>();
-                                    log.Information("收到来自课程 {courseName} 的活动：{type} - {title}",
+                                    log.Information("收到来自课程 {Name} 的活动：{Type} - {Title}",
                                         courseName,
                                         attCourse["atypeName"]?.Value<string>(),
                                         attCourse["title"]?.Value<string>()
@@ -239,7 +239,7 @@ namespace cx_auto_sign
                                     var activeType = attCourse["activeType"]?.Value<int>();
                                     if (activeType != null && activeType != 2)
                                     {
-                                        log.Error("不是签到活动，attActiveType：{v}", activeType);
+                                        log.Error("不是签到活动，attActiveType：{V}", activeType);
                                         log = null;
                                         continue;
                                     }
@@ -247,7 +247,7 @@ namespace cx_auto_sign
                                     var aType = attCourse["atype"]?.Value<int>();
                                     if (aType != 0 && aType != 2)
                                     {
-                                        log.Error("不是签到活动，atype：{v}", aType);
+                                        log.Error("不是签到活动，atype：{V}", aType);
                                         log = null;
                                         continue;
                                     }
@@ -272,7 +272,7 @@ namespace cx_auto_sign
                                     activeType = data["activeType"]?.Value<int>();
                                     if (activeType != 2)
                                     {
-                                        log.Error("不是签到活动，activeType：{v}", activeType);
+                                        log.Error("不是签到活动，activeType：{V}", activeType);
                                         log = null;
                                         continue;
                                     }
@@ -373,7 +373,7 @@ namespace cx_auto_sign
                                             log.Error("签到失败");
                                             break;
                                     }
-                                    log.Information(content);
+                                    log.Information("{V}", content);
                                     Notification.Status(log, ok);
                                 }
                                 catch (Exception e)
