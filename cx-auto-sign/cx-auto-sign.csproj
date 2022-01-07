@@ -5,9 +5,9 @@
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>cx_auto_sign</RootNamespace>
     <PackageProjectUrl>https://github.com/cyanray/cx-auto-sign</PackageProjectUrl>
-    <Version>2.1.1</Version>
-    <AssemblyVersion>2.1.1.0</AssemblyVersion>
-    <FileVersion>2.1.1.0</FileVersion>
+    <Version>2.1.2</Version>
+    <AssemblyVersion>2.1.2.0</AssemblyVersion>
+    <FileVersion>2.1.2.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
