@@ -153,7 +153,7 @@ namespace CxSignHelper
             };
             var response = await client.ExecuteGetAsync(new RestRequest());
             TestResponseCode(response);
-            var regex = new Regex(@"\?courseid=(\d+?)&clazzid=(\d+)&cpi=\d+""");
+            var regex = new Regex(@"<a href=""https://mooc1\.chaoxing\.com/visit/stucoursemiddle\?courseid=(\d+?)&clazzid=(\d+)&cpi=\d+[""&]");
             var matches = regex.Matches(response.Content);
             foreach (Match match in matches)
             {
