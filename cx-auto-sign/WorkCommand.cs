@@ -68,7 +68,7 @@ namespace cx_auto_sign
                 {
                     // 启动 WebApi 服务
                     enableWeiApi = true;
-                    Log.Information("启动 WebApi 服务");
+                    Log.Information("启动 WebApi 服务，监听规则：{Rule}", rule);
                     WebApi.Startup.Rule = rule;
                     WebApi.IntervalData.Status = new WebApi.Status
                     {
