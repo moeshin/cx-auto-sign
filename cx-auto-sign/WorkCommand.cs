@@ -50,26 +50,24 @@ namespace cx_auto_sign
             var webApi = userConfig.WebApi;
             if (webApi != null)
             {
-                string rule = null;
                 // ReSharper disable once ConvertIfStatementToSwitchStatement
                 if (webApi.Type == JTokenType.Boolean)
                 {
                     if (webApi.Value<bool>())
                     {
-                        rule = "http://localhost:5743";
+                        enableWeiApi = true;
                     }
                 }
                 else if (webApi.Type == JTokenType.String)
                 {
-                    rule = webApi.Value<string>();
+                    enableWeiApi = true;
+                    WebApi.Startup.Rule = webApi.Value<string>();
                 }
 
-                if (rule != null)
+                if (enableWeiApi)
                 {
                     // 启动 WebApi 服务
-                    enableWeiApi = true;
-                    Log.Information("启动 WebApi 服务，监听规则：{Rule}", rule);
-                    WebApi.Startup.Rule = rule;
+                    Log.Information("启动 WebApi 服务");
                     WebApi.IntervalData.Status = new WebApi.Status
                     {
                         Username = username,
