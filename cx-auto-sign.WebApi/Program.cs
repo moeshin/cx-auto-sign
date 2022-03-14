@@ -10,34 +10,27 @@ namespace cx_auto_sign.WebApi
     {
         public static void Main(string[] args)
         {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            var logger = new LoggerConfiguration()
+                .MinimumLevel.Information()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
                 .Enrich.FromLogContext()
-                .WriteTo.Console()
+                .WriteTo.Logger(Log.Logger)
                 .CreateLogger();
 
             try
             {
-                Log.Information("Starting web host");
-                CreateHostBuilder(args).Build().Run();
+                Log.Information("正在启动 WebApi 服务");
+                Host.CreateDefaultBuilder(args)
+                    .UseSerilog(logger)
+                    .ConfigureWebHostDefaults(builder => builder.UseStartup<Startup>())
+                    .Build()
+                    .Run();
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Log.Fatal(ex, "Host terminated unexpectedly");
-            }
-            finally
-            {
-                Log.CloseAndFlush();
+                Log.Fatal(e, "WebApi 意外终止");
             }
         }
-
-        private static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .UseSerilog()
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
     }
 }

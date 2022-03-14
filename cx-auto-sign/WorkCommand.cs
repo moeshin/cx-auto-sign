@@ -66,8 +66,8 @@ namespace cx_auto_sign
 
                 if (enableWeiApi)
                 {
-                    // 启动 WebApi 服务
-                    Log.Information("启动 WebApi 服务");
+                    // 启用 WebApi 服务
+                    Log.Information("启用 WebApi 服务");
                     WebApi.IntervalData.Status = new WebApi.Status
                     {
                         Username = username,
