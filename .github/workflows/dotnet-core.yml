@@ -9,10 +9,19 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.x
+    - name: Set Version
+      run: |
+        tmp_version="$(git describe --tags --long | sed 's/v\(.*\)-\(.*\)-.*/\1.\2/')"
+        echo "Version: $tmp_version"
+        echo tmp_version="$tmp_version" >> $env:GITHUB_ENV
+        . ./ver.sh
+        set-ver "$tmp_version"
     - name: Install dependencies
       run: dotnet restore
     - name: Build

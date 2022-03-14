@@ -33,6 +33,8 @@ namespace cx_auto_sign
 
         private static async Task CheckUpdate()
         {
+            var ver = GetVersion();
+            Console.WriteLine($"当前版本：{ver}");
             if (File.Exists(".noupdate"))
             {
                 Console.WriteLine("已跳过检查更新");
@@ -42,7 +44,7 @@ namespace cx_auto_sign
             {
                 Console.WriteLine("正在检查更新...");
                 var (version, info) = await GetLatestVersion();
-                if (!version.Contains(GetVersion()))
+                if (!version.Contains(ver))
                 {
                     Console.WriteLine($"发现新版本: {version}");
                     Console.WriteLine(info);
