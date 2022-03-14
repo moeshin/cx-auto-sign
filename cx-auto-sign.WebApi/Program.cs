@@ -14,6 +14,10 @@ namespace cx_auto_sign.WebApi
                 .MinimumLevel.Information()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                 .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
+                
+                // 包含请求日志
+                // .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Information)
+
                 .Enrich.FromLogContext()
                 .WriteTo.Logger(Log.Logger)
                 .CreateLogger();
@@ -31,6 +35,9 @@ namespace cx_auto_sign.WebApi
             {
                 Log.Fatal(e, "WebApi 意外终止");
             }
+
+            // Ctrl + C 只会先退出 WebApi，主程序还会继续运行，这里强制退出
+            Environment.Exit(0);
         }
     }
 }
