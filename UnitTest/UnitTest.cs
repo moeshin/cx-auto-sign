@@ -1,10 +1,11 @@
+using System;
 using cx_auto_sign;
 using NUnit.Framework;
 using Serilog;
 
 namespace UnitTest
 {
-    public class Tests
+    public class UnitTest
     {
         [SetUp]
         public void Setup()
@@ -41,6 +42,21 @@ namespace UnitTest
             Assert.IsTrue(cache.Add("1"));
             Assert.IsTrue(cache.Add("2"));
             Assert.IsTrue(cache.Add("3"));
+        }
+
+        [Test]
+        public void TestRulePhotoSign()
+        {
+            var time = new DateTime(2022, 4, 7, 8, 30, 0);
+            Assert.IsTrue(Helper.RulePhotoSign("1-4|am", time));
+            Assert.IsTrue(Helper.RulePhotoSign("4|08:00-11:40", time));
+            Assert.IsTrue(Helper.RulePhotoSign("4|pm,08:00-11:40", time));
+            Assert.IsTrue(Helper.RulePhotoSign("4|", time));
+            Assert.IsTrue(Helper.RulePhotoSign("|am", time));
+            Assert.IsFalse(Helper.RulePhotoSign("|pm", time));
+            Assert.IsFalse(Helper.RulePhotoSign("1-3|", time));
+            time = new DateTime(2022, 4, 7, 22, 33, 0);
+            Assert.IsTrue(Helper.RulePhotoSign("4|pm", time));
         }
     }
 }

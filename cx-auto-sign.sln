@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CxSignHelper", "CxSignHelpe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cx-auto-sign.WebApi", "cx-auto-sign.WebApi\cx-auto-sign.WebApi.csproj", "{B3E3D7FD-2DBE-4F3F-862E-53D9EF6CBD25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{9F662549-5A0B-4895-8F44-19859BAE33D0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTest", "UnitTest\UnitTest.csproj", "{9F662549-5A0B-4895-8F44-19859BAE33D0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -59,7 +59,7 @@ namespace CxSignHelper
             return new CxSignClient(client.CookieContainer);
         }
 
-        private async Task<string> GetTokenAsync()
+        public async Task<string> GetPanTokenAsync()
         {
             var client = new RestClient("https://pan-yz.chaoxing.com")
             {
@@ -191,7 +191,7 @@ namespace CxSignHelper
             };
             var request = new RestRequest(Method.POST);
             request.AddParameter("puid", PUid);
-            request.AddParameter("_token", await GetTokenAsync());
+            request.AddParameter("_token", await GetPanTokenAsync());
             request.AddFile("file", path);
             var response = await client.ExecutePostAsync(request);
             var json = JObject.Parse(response.Content);

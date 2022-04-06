@@ -99,21 +99,39 @@ namespace cx_auto_sign
             // ReSharper disable once InvertIf
             if (photo != null)
             {
-                var type = photo.Type;
-                // ReSharper disable once ConvertIfStatementToSwitchStatement
-                if (type == JTokenType.String)
+                void AddSet(JToken v)
                 {
-                    AddToImageSet(set, photo);
-                }
-                else if (type == JTokenType.Array)
-                {
-                    foreach (var token in photo)
+                    var type = v.Type;
+                    // ReSharper disable once ConvertIfStatementToSwitchStatement
+                    if (type == JTokenType.String)
                     {
-                        if (token.Type == JTokenType.String)
+                        AddToImageSet(set, photo);
+                    }
+                    else if (type == JTokenType.Array)
+                    {
+                        foreach (var token in photo)
                         {
-                            AddToImageSet(set, token);
+                            if (token.Type == JTokenType.String)
+                            {
+                                AddToImageSet(set, token);
+                            }
                         }
                     }
+                }
+
+                if (photo.Type == JTokenType.Object)
+                {
+                    foreach (var (k, v) in (JObject) photo)
+                    {
+                        if (Helper.RulePhotoSign(k, DateTime.Now))
+                        {
+                            AddSet(v);
+                        }
+                    }
+                }
+                else
+                {
+                    AddSet(photo);
                 }
             }
             return set;
@@ -180,8 +198,16 @@ namespace cx_auto_sign
             var length = array.Length;
             if (length != 0)
             {
-                log.Information("将从这些图片中随机选择一张进行图片签到：{Array}", array);
-                var path = array[new Random().Next(length)];
+                string path;
+                if (length == 1)
+                {
+                    path = array[0];
+                }
+                else
+                {
+                    log.Information("将从这些图片中随机选择一张进行图片签到：{Array}", array);
+                    path = array[new Random().Next(length)];
+                }
                 if (!string.IsNullOrEmpty(path))
                 {
                     log.Information("将使用这张照片进行图片签到：{Path}", path);
