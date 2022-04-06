@@ -25,6 +25,8 @@ jobs:
           set-ver "$tmp_version"
       - name: Install dependencies
         run: dotnet restore
+      - name: Unit Test
+        run: dotnet test
       - name: Build
         run: dotnet build --configuration Release --no-restore
       - name: Publish
