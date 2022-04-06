@@ -39,6 +39,7 @@ namespace cx_auto_sign
             var username = userConfig.Username;
             var password = userConfig.Password;
             var fid = userConfig.Fid;
+            var signCache = new SignCache();
 
             Log.Information("正在登录账号：{Username}", username);
             var client = await CxSignClient.LoginAsync(username, password, fid);
@@ -217,6 +218,11 @@ namespace cx_auto_sign
                                         continue;
                                     }
                                     log.Information("ActiveId: {ActiveId}", activeId);
+                                    if (signCache.Has(activeId))
+                                    {
+                                        log.Warning("跳过：已签到");
+                                        continue;
+                                    }
 
                                     var courseInfo = attCourse["courseInfo"];
                                     if (courseInfo == null)
@@ -381,6 +387,10 @@ namespace cx_auto_sign
                                     }
                                     log.Information("{V}", content);
                                     Notification.Status(log, ok);
+                                    if (ok)
+                                    {
+                                        signCache.Add(activeId);
+                                    }
                                 }
                                 catch (Exception e)
                                 {
