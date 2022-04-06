@@ -6,10 +6,19 @@ namespace cx_auto_sign
     public static class Helper
     {
         private static readonly DateTime DateTime1970 = new(1970, 1, 1, 8, 0, 0);
-        
-        public static double GetTimestamp()
+
+        private static TimeSpan GetTimestamp()
         {
-            return (DateTime.Now - DateTime1970).TotalMilliseconds;
+            return DateTime.Now - DateTime1970;
+        }
+        public static double GetTimestampMs()
+        {
+            return GetTimestamp().TotalMilliseconds;
+        }
+
+        public static double GetTimestampS()
+        {
+            return GetTimestamp().TotalSeconds;
         }
 
         public static bool CheckUpdate(string local, string remote)
