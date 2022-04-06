@@ -16,7 +16,6 @@ namespace cx_auto_sign
     [Command(Description = "工作模式, 监听签到任务并自动签到")]
     public class WorkCommand : CommandBase
     {
-        private static readonly DateTime DateTime1970 = new(1970, 1, 1, 8, 0, 0);
 
         // ReSharper disable UnassignedGetOnlyAutoProperty
         [Option("-u", Description = "指定用户名（学号）")]
@@ -99,7 +98,7 @@ namespace cx_auto_sign
 
                 async void OnMessageReceived(ResponseMessage msg)
                 {
-                    var startTime = GetTimestamp();
+                    var startTime = Utils.GetTimestamp();
                     try
                     {
                         Log.Information(
@@ -205,7 +204,7 @@ namespace cx_auto_sign
                                         continue;
                                     }
 
-                                    log = Notification.CreateLogger(auConfig, GetTimestamp());
+                                    log = Notification.CreateLogger(auConfig, Utils.GetTimestamp());
                                     log.Information("消息时间：{Time}", startTime);
                                     log.Information("ChatId: {ChatId}", chatId);
                                     
@@ -349,8 +348,8 @@ namespace cx_auto_sign
                                     var taskTime = data["starttime"]!.Value<long>();
                                     log.Information("任务时间: {Time}", taskTime);
                                     log.Information("签到准备完毕，耗时：{Time}ms",
-                                        GetTimestamp() - startTime);
-                                    var takenTime = GetTimestamp() - taskTime;
+                                        Utils.GetTimestamp() - startTime);
+                                    var takenTime = Utils.GetTimestamp() - taskTime;
                                     log.Information("签到已发布：{Time}ms", takenTime);
                                     var delay = courseConfig.SignDelay;
                                     log.Information("用户配置延迟签到：{Time}s", delay);
@@ -443,11 +442,6 @@ namespace cx_auto_sign
                 SignType.Location => "位置签到",
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
-        }
-
-        private static double GetTimestamp()
-        {
-            return (DateTime.Now - DateTime1970).TotalMilliseconds;
         }
 
         private void WsSend(string msg)

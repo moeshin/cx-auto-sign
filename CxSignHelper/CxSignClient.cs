@@ -76,23 +76,6 @@ namespace CxSignHelper
             return tokenObject.Token;
         }
 
-        public async Task<JArray> GetSignTasksAsync(string courseId, string classId)
-        {
-            var client = new RestClient("https://mobilelearn.chaoxing.com")
-            {
-                CookieContainer = _cookie
-            };
-            var request = new RestRequest("v2/apis/active/student/activelist");
-            request.AddParameter("fid", Fid ?? "0");
-            request.AddParameter("courseId", courseId);
-            request.AddParameter("classId", classId);
-            var response = await client.ExecuteGetAsync(request);
-            TestResponseCode(response);
-            var json = JObject.Parse(response.Content);
-            TestResult(json);
-            return (JArray)json["data"]!["activeList"];
-        }
-
         public async Task<JToken> GetActiveDetailAsync(string activeId)
         {
             var client = new RestClient("https://mobilelearn.chaoxing.com")
