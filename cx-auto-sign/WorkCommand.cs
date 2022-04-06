@@ -98,7 +98,7 @@ namespace cx_auto_sign
 
                 async void OnMessageReceived(ResponseMessage msg)
                 {
-                    var startTime = Utils.GetTimestamp();
+                    var startTime = Helper.GetTimestamp();
                     try
                     {
                         Log.Information(
@@ -204,7 +204,7 @@ namespace cx_auto_sign
                                         continue;
                                     }
 
-                                    log = Notification.CreateLogger(auConfig, Utils.GetTimestamp());
+                                    log = Notification.CreateLogger(auConfig, Helper.GetTimestamp());
                                     log.Information("消息时间：{Time}", startTime);
                                     log.Information("ChatId: {ChatId}", chatId);
                                     
@@ -348,8 +348,8 @@ namespace cx_auto_sign
                                     var taskTime = data["starttime"]!.Value<long>();
                                     log.Information("任务时间: {Time}", taskTime);
                                     log.Information("签到准备完毕，耗时：{Time}ms",
-                                        Utils.GetTimestamp() - startTime);
-                                    var takenTime = Utils.GetTimestamp() - taskTime;
+                                        Helper.GetTimestamp() - startTime);
+                                    var takenTime = Helper.GetTimestamp() - taskTime;
                                     log.Information("签到已发布：{Time}ms", takenTime);
                                     var delay = courseConfig.SignDelay;
                                     log.Information("用户配置延迟签到：{Time}s", delay);

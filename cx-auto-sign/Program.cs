@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.Net;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace cx_auto_sign
@@ -34,13 +33,6 @@ namespace cx_auto_sign
 
         private static async Task CheckUpdate()
         {
-            // System.Diagnostics.Debug.Assert(!CheckUpdate("2.1.3", "v0.0.0.1"));
-            // System.Diagnostics.Debug.Assert(!CheckUpdate("2.1.3.2", "v2.1.3"));
-            // System.Diagnostics.Debug.Assert(!CheckUpdate("2.1.3", "v2.1.3"));
-            // System.Diagnostics.Debug.Assert(CheckUpdate("2.1.3", "v2.1.3.6"));
-            // System.Diagnostics.Debug.Assert(CheckUpdate("2.1.3", "v2.1.5"));
-            // System.Diagnostics.Debug.Assert(CheckUpdate("2.1.3", "v2.2.5"));
-            // System.Diagnostics.Debug.Assert(!CheckUpdate("2.5.3", "2.2.5"));
             var ver = GetVersion();
             Console.WriteLine($"当前版本：{ver}");
             if (File.Exists(".noupdate"))
@@ -52,7 +44,7 @@ namespace cx_auto_sign
             {
                 Console.WriteLine("正在检查更新...");
                 var (version, info) = await GetLatestVersion();
-                if (CheckUpdate(ver, version))
+                if (Helper.CheckUpdate(ver, version))
                 {
                     Console.WriteLine($"发现新版本: {version}");
                     Console.WriteLine(info);
@@ -65,33 +57,6 @@ namespace cx_auto_sign
                 Console.WriteLine(ex.Message);
                 Console.WriteLine("获取版本信息失败，请访问 https://github.com/moeshin/cx-auto-sign/releases 检查是否有更新");
             }
-        }
-
-        private static bool CheckUpdate(string local, string remote)
-        {
-            if (remote == null || local == null)
-            {
-                return false;
-            }
-            var regex = new Regex(@"^v?(\d+(?:\.\d+)+)");
-            var match = regex.Match(remote);
-            if (!match.Success)
-            {
-                return false;
-            }
-            var r = match.Groups[1].Value.Split('.');
-            var l =local.Split('.');
-            var length = Math.Min(r.Length, l.Length);
-            for (var i = 0; i < length; ++i)
-            {
-                var v = int.Parse(r[i]) - int.Parse(l[i]);
-                if (v == 0)
-                {
-                    continue;
-                }
-                return v > 0;
-            }
-            return r.Length > l.Length;
         }
 
         private static string GetVersion()
