@@ -206,6 +206,7 @@ namespace cx_auto_sign
                                     }
 
                                     log = Notification.CreateLogger(auConfig, Helper.GetTimestampMs());
+                                    log.Information("用户：{User}", user);
                                     log.Information("消息时间：{Time}", startTime);
                                     log.Information("ChatId: {ChatId}", chatId);
                                     
