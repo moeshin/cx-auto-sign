@@ -27,11 +27,10 @@ namespace cx_auto_sign
     {
         private static async Task<int> Main(string[] args)
         {
-            await CheckUpdate();
             return await CommandLineApplication.ExecuteAsync<Program>(args);
         }
 
-        private static async Task CheckUpdate()
+        public static async Task CheckUpdate()
         {
             var ver = GetVersion();
             Console.WriteLine($"当前版本：{ver}");

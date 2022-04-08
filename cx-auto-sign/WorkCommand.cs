@@ -26,6 +26,7 @@ namespace cx_auto_sign
 
         protected override async Task<int> OnExecuteAsync(CommandLineApplication app)
         {
+            await Program.CheckUpdate();
             var appConfig = new AppDataConfig();
             var user = Username ?? appConfig.DefaultUsername;
             if (user == null)
