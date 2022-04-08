@@ -92,7 +92,7 @@ namespace cx_auto_sign
             return Path.GetFullPath(path);
         }
 
-        private IEnumerable<string> GetImageSet()
+        private IEnumerable<string> GetImageSet(DateTime now)
         {
             var set = new HashSet<string>();
             var photo = Get(GetSignTypeKey(SignType.Photo));
@@ -123,7 +123,7 @@ namespace cx_auto_sign
                 {
                     foreach (var (k, v) in (JObject) photo)
                     {
-                        if (Helper.RulePhotoSign(k, DateTime.Now))
+                        if (Helper.RulePhotoSign(k, now))
                         {
                             AddSet(v);
                         }
@@ -192,9 +192,9 @@ namespace cx_auto_sign
             }
         }
 
-        public async Task<string> GetImageIdAsync(CxSignClient client, ILogger log)
+        public async Task<string> GetImageIdAsync(CxSignClient client, ILogger log, DateTime now)
         {
-            var array = GetImageSet().ToArray();
+            var array = GetImageSet(now).ToArray();
             var length = array.Length;
             if (length != 0)
             {

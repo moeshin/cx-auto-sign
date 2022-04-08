@@ -314,7 +314,7 @@ namespace cx_auto_sign
                                     {
                                         case SignType.Photo:
                                             var iid = signOptions.ImageId
-                                                = await courseConfig.GetImageIdAsync(client, log);
+                                                = await courseConfig.GetImageIdAsync(client, log, DateTime.Now);
                                             log.Information(
                                                 "预览：{Url}",
                                                 $"https://p.ananas.chaoxing.com/star3/170_220c/{iid}"

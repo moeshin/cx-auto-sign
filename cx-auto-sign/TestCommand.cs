@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using CxSignHelper.Models;
 using McMaster.Extensions.CommandLineUtils;
 using Newtonsoft.Json.Linq;
@@ -18,6 +19,9 @@ namespace cx_auto_sign
         
         [Option("-t", Description = "签到类型，0 普通签到，1 拍照签到，2 二维码签到，3 手势签到，4 位置签到")]
         private SignType Type { get; }
+
+        [Option("-d", Description = "日期时间，默认当前时间，用于拍照签到")]
+        private DateTime Date { get; }
         // ReSharper restore UnassignedGetOnlyAutoProperty
 
         protected override async Task<int> OnExecuteAsync(CommandLineApplication app)
@@ -51,7 +55,8 @@ namespace cx_auto_sign
             {
                 if (Type == SignType.Photo)
                 {
-                    await work.CourseConfig.GetImageIdAsync(null, log);
+                    await work.CourseConfig.GetImageIdAsync(null, log,
+                        Date == DateTime.MinValue ? DateTime.Now : Date);
                 }
                 Notification.Status(log, true);
                 Notification.Send(log);
