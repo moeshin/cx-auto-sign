@@ -104,9 +104,22 @@ namespace cx_auto_sign
             var ts = time.TimeOfDay;
             foreach (var s in rule.Split(','))
             {
-                if (s == "am" && ts <= TimeNoon || s == "pm" && ts > TimeNoon)
+                // ReSharper disable once ConvertIfStatementToSwitchStatement
+                if (s == "am")
                 {
-                    return true;
+                    if (ts < TimeNoon)
+                    {
+                        return true;
+                    }
+                    continue;
+                }
+                if (s == "pm")
+                {
+                    if (ts >= TimeNoon)
+                    {
+                        return true;
+                    }
+                    continue;
                 }
                 var arr = s.Split('-');
                 var len = arr.Length;

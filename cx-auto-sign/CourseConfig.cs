@@ -105,11 +105,11 @@ namespace cx_auto_sign
                     // ReSharper disable once ConvertIfStatementToSwitchStatement
                     if (type == JTokenType.String)
                     {
-                        AddToImageSet(set, photo);
+                        AddToImageSet(set, v);
                     }
                     else if (type == JTokenType.Array)
                     {
-                        foreach (var token in photo)
+                        foreach (var token in v)
                         {
                             if (token.Type == JTokenType.String)
                             {
