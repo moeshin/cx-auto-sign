@@ -21,7 +21,8 @@ namespace cx_auto_sign
     [Subcommand(
         typeof(InitCommand),
         typeof(WorkCommand),
-        typeof(UpdateCommand)
+        typeof(UpdateCommand),
+        typeof(TestCommand)
         )]
     internal class Program : CommandBase
     {

@@ -127,7 +127,7 @@ namespace cx_auto_sign
         {
             if (string.IsNullOrEmpty(_userConfig.Email))
             {
-                _log.Warning($"由于 {nameof(UserConfig.Email)} 为空，没有发送邮件通知");
+                _log.Warning("由于 {Name} 为空，没有发送邮件通知", nameof(UserConfig.Email));
                 return;
             }
             if (string.IsNullOrEmpty(_userConfig.SmtpHost) ||
@@ -173,7 +173,8 @@ namespace cx_auto_sign
         {
             if (string.IsNullOrEmpty(_userConfig.ServerChanKey))
             {
-                _log.Warning($"由于 {nameof(UserConfig.ServerChanKey)} 为空，没有发送 ServerChan 通知");
+                _log.Warning("由于 {Name} 为空，没有发送 ServerChan 通知", 
+                    nameof(UserConfig.ServerChanKey));
                 return;
             }
             try
@@ -212,7 +213,8 @@ namespace cx_auto_sign
         {
             if (string.IsNullOrEmpty(_userConfig.PushPlusToken))
             {
-                _log.Warning($"由于 {nameof(UserConfig.PushPlusToken)} 为空，没有发送 PushPlus 通知");
+                _log.Warning("由于 {Name} 为空，没有发送 PushPlus 通知",
+                    nameof(UserConfig.PushPlusToken));
                 return;
             }
             try

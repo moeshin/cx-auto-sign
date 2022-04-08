@@ -206,10 +206,9 @@ namespace cx_auto_sign
                                         continue;
                                     }
 
-                                    log = Notification.CreateLogger(auConfig, Helper.GetTimestampMs());
-                                    log.Information("用户：{User}", user);
-                                    log.Information("消息时间：{Time}", startTime);
-                                    log.Information("ChatId: {ChatId}", chatId);
+                                    var work = new SignWork(auConfig);
+                                    log = work.Log;
+                                    work.Start(startTime, user, chatId);
                                     
                                     var activeId = attCourse["aid"]?.Value<string>();
                                     if (activeId is null or "0")
@@ -268,7 +267,7 @@ namespace cx_auto_sign
                                     var course = userConfig.GetCourse(chatId);
                                     if (course == null)
                                     {
-                                        log.Information("该课程不在课程列表");
+                                        log.Warning("该课程不在课程列表");
                                         var json = userConfig.AddCourse(chatId);
                                         json[nameof(CourseDataConfig.CourseName)] = courseName;
                                         json[nameof(CourseDataConfig.CourseId)]
@@ -280,6 +279,7 @@ namespace cx_auto_sign
                                     }
 
                                     var courseConfig = new CourseConfig(appConfig, userConfig, course);
+                                    work.SetCourseConfig(courseConfig);
                                     var data = await client.GetActiveDetailAsync(activeId);
 
                                     var activeType = data["activeType"]?.Value<int>();
@@ -292,18 +292,9 @@ namespace cx_auto_sign
                                     }
 
                                     var signType = GetSignType(data);
-                                    log.Information("签到类型：{Type}",
-                                        GetSignTypeName(signType));
-                                    // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
-                                    switch (signType)
+                                    if (!work.TestType(signType, data))
                                     {
-                                        case SignType.Gesture:
-                                            log.Information("手势：{Code}",
-                                                data["signCode"]?.Value<string>());
-                                            break;
-                                        case SignType.Qr:
-                                            log.Warning("暂时无法二维码签到");
-                                            continue;
+                                        continue;
                                     }
 
                                     if (enableWeiApi && !WebApi.IntervalData.Status.CxAutoSignEnabled)
@@ -312,18 +303,11 @@ namespace cx_auto_sign
                                         continue;
                                     }
 
-                                    if (!courseConfig.SignEnable)
+                                    if (work.TestSignSkip())
                                     {
-                                        log.Information("因用户配置，跳过签到");
                                         continue;
                                     }
-
-                                    var signOptions = courseConfig.GetSignOptions(signType);
-                                    if (signOptions == null)
-                                    {
-                                        log.Warning("因用户课程配置，跳过签到");
-                                        continue;
-                                    }
+                                    var signOptions = work.SignOptions;
 
                                     // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
                                     switch (signType)
@@ -441,19 +425,6 @@ namespace cx_auto_sign
                         ? SignType.Photo
                         : SignType.Normal;
             }
-        }
-
-        private static string GetSignTypeName(SignType type)
-        {
-            return type switch
-            {
-                SignType.Normal => "普通签到",
-                SignType.Photo => "图片签到",
-                SignType.Qr => "二维码签到",
-                SignType.Gesture => "手势签到",
-                SignType.Location => "位置签到",
-                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
-            };
         }
 
         private void WsSend(string msg)

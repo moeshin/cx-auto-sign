@@ -211,13 +211,16 @@ namespace cx_auto_sign
                 if (!string.IsNullOrEmpty(path))
                 {
                     log.Information("将使用这张照片进行图片签到：{Path}", path);
-                    try
+                    if (client != null)
                     {
-                        return await client.UploadImageAsync(path);
-                    }
-                    catch (Exception e)
-                    {
-                        log.Error(e, "上传图片失败");
+                        try
+                        {
+                            return await client.UploadImageAsync(path);
+                        }
+                        catch (Exception e)
+                        {
+                            log.Error(e, "上传图片失败");
+                        }
                     }
                 }
             }
