@@ -2,7 +2,7 @@
 
 echo ------------
 echo dotnet publish
-dotnet publish -c Release -o out/cx-auto-sign
+dotnet publish cx-auto-sign/cx-auto-sign.csproj -c Release -o out/cx-auto-sign
 echo ------------
 echo Pack
 cd out || exit 1
