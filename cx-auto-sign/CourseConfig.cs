@@ -2,18 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
-using CxSignHelper;
 using CxSignHelper.Models;
 using Newtonsoft.Json.Linq;
-using Serilog;
 
 namespace cx_auto_sign
 {
     public class CourseConfig: BaseConfig
     {
         private const string ImageDir = "Images";
-        private const string ImageNoneId = "041ed4756ca9fdf1f9b6dde7a83f8794";
 
         private static readonly string[] ImageSuffixes = { "png", "jpg", "jpeg", "bmp", "gif", "webp" };
 
@@ -57,7 +53,7 @@ namespace cx_auto_sign
                    Get(Default[key]);
         }
 
-        private static string GetSignTypeKey(SignType type)
+        public static string GetSignTypeKey(SignType type)
         {
             return "Sign" + type;
         }
@@ -87,12 +83,12 @@ namespace cx_auto_sign
 
             if (!Path.IsPathRooted(path))
             {
-                path = Path.Combine(ImageDir, path!);
+                path = Path.Combine(ImageDir, path);
             }
             return Path.GetFullPath(path);
         }
 
-        private IEnumerable<string> GetImageSet(DateTime now)
+        public IEnumerable<string> GetImageSet(DateTime now)
         {
             var set = new HashSet<string>();
             var photo = Get(GetSignTypeKey(SignType.Photo));
@@ -123,7 +119,7 @@ namespace cx_auto_sign
                 {
                     foreach (var (k, v) in (JObject) photo)
                     {
-                        if (Helper.RulePhotoSign(k, now))
+                        if (Helper.RulePhotoSign(now, k))
                         {
                             AddSet(v);
                         }
@@ -190,42 +186,6 @@ namespace cx_auto_sign
                     AddFileToImageSet(set, name);
                 }
             }
-        }
-
-        public async Task<string> GetImageIdAsync(CxSignClient client, ILogger log, DateTime now)
-        {
-            var array = GetImageSet(now).ToArray();
-            var length = array.Length;
-            if (length != 0)
-            {
-                string path;
-                if (length == 1)
-                {
-                    path = array[0];
-                }
-                else
-                {
-                    log.Information("将从这些图片中随机选择一张进行图片签到：{Array}", array);
-                    path = array[new Random().Next(length)];
-                }
-                if (!string.IsNullOrEmpty(path))
-                {
-                    log.Information("将使用这张照片进行图片签到：{Path}", path);
-                    if (client != null)
-                    {
-                        try
-                        {
-                            return await client.UploadImageAsync(path);
-                        }
-                        catch (Exception e)
-                        {
-                            log.Error(e, "上传图片失败");
-                        }
-                    }
-                }
-            }
-            log.Information("将使用一张黑图进行图片签到");
-            return ImageNoneId;
         }
     }
 }

@@ -55,8 +55,7 @@ namespace cx_auto_sign
             {
                 if (Type == SignType.Photo)
                 {
-                    await work.CourseConfig.GetImageIdAsync(null, log,
-                        Date == DateTime.MinValue ? DateTime.Now : Date);
+                    await work.GetImageIdAsync(null, Date == DateTime.MinValue ? DateTime.Now : Date);
                 }
                 Notification.Status(log, true);
                 Notification.Send(log);

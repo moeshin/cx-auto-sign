@@ -145,7 +145,7 @@ namespace cx_auto_sign
             return false;
         }
 
-        public static bool RulePhotoSign(string key, DateTime time)
+        public static bool RulePhotoSign(DateTime time, string key)
         {
             if (key == "")
             {

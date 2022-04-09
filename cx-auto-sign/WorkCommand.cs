@@ -8,7 +8,6 @@ using System.Linq;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
-using Serilog.Core;
 using Websocket.Client;
 
 namespace cx_auto_sign
@@ -166,7 +165,7 @@ namespace cx_auto_sign
 
                             while (true)
                             {
-                                Logger log = null;
+                                ILogger log = null;
                                 try
                                 {
                                     var index = sessionEnd;
@@ -314,7 +313,7 @@ namespace cx_auto_sign
                                     {
                                         case SignType.Photo:
                                             var iid = signOptions.ImageId
-                                                = await courseConfig.GetImageIdAsync(client, log, DateTime.Now);
+                                                = await work.GetImageIdAsync(client, DateTime.Now);
                                             log.Information(
                                                 "预览：{Url}",
                                                 $"https://p.ananas.chaoxing.com/star3/170_220c/{iid}"
