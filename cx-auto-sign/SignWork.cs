@@ -15,12 +15,11 @@ namespace cx_auto_sign
         private SignType _signType;
 
         public ILogger Log;
-        public CourseConfig CourseConfig { get; private set; }
+        private CourseConfig CourseConfig { get; set; }
         public SignOptions SignOptions { get; private set; }
 
         public SignWork(UserConfig auConfig)
         {
-
             Log = Notification.CreateLogger(auConfig, Helper.GetTimestampMs());
         }
 
@@ -45,6 +44,9 @@ namespace cx_auto_sign
             {
                 case SignType.Gesture:
                     Log.Information("手势：{Code}", data["signCode"]?.Value<string>());
+                    break;
+                case SignType.Code:
+                    Log.Information("签到码：{Code}", data["signCode"]?.Value<string>());
                     break;
                 case SignType.Qr:
                     Log.Warning("暂时无法二维码签到");
@@ -113,15 +115,18 @@ namespace cx_auto_sign
             return ImageNoneId;
         }
 
-        private static string GetSignTypeName(SignType type)
+        public static string GetSignTypeName(SignType type)
         {
+            // ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
             return type switch
             {
+                SignType.Unknown => "未知签到类型",
                 SignType.Normal => "普通签到",
                 SignType.Photo => "图片签到",
                 SignType.Qr => "二维码签到",
                 SignType.Gesture => "手势签到",
                 SignType.Location => "位置签到",
+                SignType.Code => "签到码签到",
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }

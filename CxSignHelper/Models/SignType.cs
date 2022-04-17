@@ -15,6 +15,15 @@
         Gesture,
 
         // 位置签到
-        Location
+        Location,
+
+        // 签到码签到
+        Code,
+
+        // 类型总数
+        Length,
+
+        // 未知签到类型
+        Unknown = -1
     }
 }

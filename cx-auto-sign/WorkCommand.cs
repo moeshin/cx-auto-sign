@@ -409,21 +409,22 @@ namespace cx_auto_sign
 
         private static SignType GetSignType(JToken data)
         {
-            var otherId = data["otherId"].Value<int>();
-            switch (otherId)
+            var id = data["otherId"].Value<int>();
+            switch (id)
             {
-                case 2:
-                    return SignType.Qr;
-                case 3:
-                    return SignType.Gesture;
-                case 4:
-                    return SignType.Location;
-                default:
+                case < 0 or (int)SignType.Photo or >= (int)SignType.Length:
+                    return SignType.Unknown;
+                case 0:
+                {
                     var token = data["ifphoto"];
-                    return token?.Type == JTokenType.Integer && token.Value<int>() != 0
-                        ? SignType.Photo
-                        : SignType.Normal;
+                    if (token?.Type == JTokenType.Integer && token.Value<int>() != 0)
+                    {
+                        return SignType.Photo;
+                    }
+                    break;
+                }
             }
+            return (SignType)id;
         }
 
         private void WsSend(string msg)

@@ -114,5 +114,14 @@ namespace UnitTest
             Assert.IsTrue(T1(time, "|am", "1-3|"));
             Assert.IsFalse(T1(time, "1-3|", "|am"));
         }
+
+        [Test]
+        public void TestSignTypeEnum()
+        {
+            for (var i = -1; i < (int)SignType.Length; ++i)
+            {
+                SignWork.GetSignTypeName((SignType)i);
+            }
+        }
     }
 }
