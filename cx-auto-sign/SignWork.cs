@@ -100,7 +100,7 @@ namespace cx_auto_sign
         public async Task<string> GetImageIdAsync(CxSignClient client, DateTime now)
         {
             var path = GetImagePath(now);
-            if (client != null)
+            if (path != null)
             {
                 try
                 {
