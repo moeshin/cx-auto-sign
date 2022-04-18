@@ -4,7 +4,7 @@ dir="$(cd "$(dirname "$0")" || exit 1; pwd)"
 
 . "$dir/.base.sh"
 
-testUser "$1" "启动"
+help "$0" "$1" "启动"
 
 if [ "$1" == "-a" ]; then
   for file in "$conf_dir"/*; do

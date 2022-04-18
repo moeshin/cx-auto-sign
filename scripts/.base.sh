@@ -12,13 +12,13 @@ _mkdir() {
   fi
 }
 
-testUser() {
-  if [ -z "$1" ]; then
+help() {
+  if [ -z "$2" ]; then
     echo "多账号管理脚本用法：
-  $2：
-  ./start <用户名或文件名>    单个账号
-  或
-  ./start -a                全部账号"
+$3：
+  $1 <用户名或文件名>    单个账号
+或：
+  $1 -a                全部账号"
     exit 1
   fi
 }

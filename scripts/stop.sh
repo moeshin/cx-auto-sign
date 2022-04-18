@@ -4,7 +4,7 @@ dir="$(cd "$(dirname "$0")" || exit 1; pwd)"
 
 . "$dir/.base.sh"
 
-testUser "$1" "停止"
+help "$0" "$1" "停止"
 
 stop() {
   user="$1"
