@@ -23,6 +23,8 @@ namespace cx_auto_sign
 
         private WebsocketClient _ws;
 
+        private readonly System.Timers.Timer _heartTimer = new();
+
         protected override async Task<int> OnExecuteAsync(CommandLineApplication app)
         {
             await Program.CheckUpdate();
@@ -89,7 +91,19 @@ namespace cx_auto_sign
             }))
             {
                 _ws.ReconnectionHappened.Subscribe(info =>
-                    Log.Warning("CXIM: Reconnection happened, type: {Type}", info.Type));
+                {
+                    if (info.Type == ReconnectionType.Initial)
+                    {
+                        _heartTimer.Interval = 30000;
+                        _heartTimer.Elapsed += (_, _) =>
+                        {
+                            Log.Error("CXIM: 30s 内没有接收到心跳包");
+                        };
+                        _heartTimer.Start();
+                    }
+
+                    Log.Warning("CXIM: Reconnection happened, type: {Type}", info.Type);
+                });
                 _ws.DisconnectionHappened.Subscribe(info => Log.Error(
                     info.Exception,
                     "CXIM: Disconnection happened: {Type} {Status}",
@@ -104,10 +118,13 @@ namespace cx_auto_sign
                     {
                         // 对心跳包进行屏蔽，这部分导致日志膨胀且意义不大
                         if(msg.Text.Length == 1 && msg.Text == "h"){
-                            
-                        }else{
+                            _heartTimer.Stop();
+                            _heartTimer.Start();
+                        }
+                        else
+                        {
                             Log.Information(
-                                "CXIM: Message received: {Size} {Message}",
+                                "CXIM 接收到消息 {Size}: {Message}",
                                 msg.Text.Length,
                                 msg.Text
                             );
