@@ -102,11 +102,16 @@ namespace cx_auto_sign
                     var startTime = Helper.GetTimestampMs();
                     try
                     {
-                        Log.Information(
-                            "CXIM: Message received: {Size} {Message}",
-                            msg.Text.Length,
-                            msg.Text
-                        );
+                        // 对心跳包进行屏蔽，这部分导致日志膨胀且意义不大
+                        if(msg.Text.Length == 1 && msg.Text == "h"){
+                            
+                        }else{
+                            Log.Information(
+                                "CXIM: Message received: {Size} {Message}",
+                                msg.Text.Length,
+                                msg.Text
+                            );
+                        }
                         if (msg.Text.StartsWith("o"))
                         {
                             Log.Information("CXIM 登录");
