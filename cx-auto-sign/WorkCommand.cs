@@ -94,19 +94,20 @@ namespace cx_auto_sign
                 {
                     if (info.Type == ReconnectionType.Initial)
                     {
+                        Log.Information("CXIM 已连接");
                         _heartTimer.Interval = 30000;
                         _heartTimer.Elapsed += (_, _) =>
                         {
                             Log.Error("CXIM: 30s 内没有接收到心跳包");
                         };
                         _heartTimer.Start();
+                        return;
                     }
-
-                    Log.Warning("CXIM: Reconnection happened, type: {Type}", info.Type);
+                    Log.Warning("CXIM 重新连接，类型：{Type}", info.Type);
                 });
                 _ws.DisconnectionHappened.Subscribe(info => Log.Error(
                     info.Exception,
-                    "CXIM: Disconnection happened: {Type} {Status}",
+                    "CXIM 断开连接，类型：{Type}，状态：{Status}",
                     info.Type,
                     info.CloseStatus
                 ));
@@ -451,7 +452,7 @@ namespace cx_auto_sign
 
         private void WsSend(string msg)
         {
-            Log.Information("CXIM: Message send: {Message}", msg);
+            Log.Information("CXIM 发送消息 {Size}: {Message}", msg.Length, msg);
             _ws.Send(msg);
         }
     }
