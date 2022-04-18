@@ -19,6 +19,12 @@ namespace UnitTest
         }
 
         [Test]
+        public void Dev()
+        {
+            Assert.Ignore();
+        }
+
+        [Test]
         public void TestCheckUpdate()
         {
             Assert.IsFalse(Helper.CheckUpdate("2.1.3", "v0.0.0.1"));
