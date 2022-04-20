@@ -215,8 +215,25 @@ namespace cx_auto_sign
                                     var attType = att["attachmentType"]?.Value<int>();
                                     if (attType != 15)
                                     {
-                                        Log.Error("解析失败，attachmentType != 15");
-                                        Log.Error("{V}", att.ToString());
+                                        switch (attType){
+                                            case 1:
+                                            {
+                                                // 如果编辑后再发布，接收到的内容还是原始内容
+                                                // 首次发布，并没有 title，只有 content
+                                                // 编辑后再发布，content 将变为 title
+                                                var topic = att["att_topic"];
+                                                Log.Information(
+                                                    "收到来自《{Name}》的主题讨论：{Content}",
+                                                    topic?["att_group"]?["name"]?.Value<string>(),
+                                                    (topic?["content"] ?? topic?["title"])?.Value<string>()
+                                                );
+                                                break;
+                                            }
+                                            default:
+                                                Log.Error("解析失败，attachmentType != 15");
+                                                Log.Error("{V}", att.ToString());
+                                                break;
+                                        }
                                         continue;
                                     }
 
