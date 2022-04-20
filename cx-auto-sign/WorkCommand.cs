@@ -272,12 +272,31 @@ namespace cx_auto_sign
                                         log = null;
                                         continue;
                                     }
+
+                                    var aType = attCourse["atype"]?.Value<int>();
+                                    log.Information("aType: {V}", aType);
                                     var courseName = courseInfo?["coursename"]?.Value<string>();
-                                    log.Information("收到来自课程 {Name} 的活动：{Type} - {Title}",
-                                        courseName,
-                                        attCourse["atypeName"]?.Value<string>(),
-                                        attCourse["title"]?.Value<string>()
-                                    );
+
+                                    {
+                                        string type;
+                                        if (aType == null && attCourse["type"]?.Value<int>() == 4)
+                                        {
+                                            type = "直播";
+                                        }
+                                        else
+                                        {
+                                            type = attCourse["atypeName"]?.Value<string>();
+                                            if (aType is not 35 or 17)
+                                            {
+                                                type += "活动";
+                                            }
+                                        }
+                                        log.Information("收到来自《{Name}》的{Type}：{Title}",
+                                            courseName,
+                                            type,
+                                            attCourse["title"]?.Value<string>()
+                                        );
+                                    }
 
                                     var attActiveType = attCourse["activeType"]?.Value<int>();
                                     log.Information("attActiveType: {V}", attActiveType);
@@ -288,17 +307,29 @@ namespace cx_auto_sign
                                         continue;
                                     }
 
-                                    var aType = attCourse["atype"]?.Value<int>();
-                                    log.Information("aType: {V}", aType);
                                     if (aType != 0 && aType != 2)
                                     {
                                         /*
+                                        aType:
                                         0: 签到
                                         2: 签到
                                         4: 抢答
                                         11: 选人
+                                        14: 问卷
+                                        17: 直播
+                                        23: 评分
+                                        35: 分组任务
+                                        42: 随堂练习
+                                        43: 投票
+                                        49: 白板
+
+                                        type: 4: 直播
+                                        没有通知：计时器
+                                        没有测试：腾讯会议
+                                        无法解析：群聊
                                          */
                                         log.Error("不是签到活动");
+                                        // log.Warning("{V}", att.ToString());
                                         log = null;
                                         continue;
                                     }
