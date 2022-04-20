@@ -215,8 +215,15 @@ namespace cx_auto_sign
                                     var attType = att["attachmentType"]?.Value<int>();
                                     if (attType != 15)
                                     {
-                                        Log.Error("解析失败，attachmentType != 15");
-                                        Log.Error("{V}", att.ToString());
+                                        // 这部分需要进行审核，因为我不太会写C#代码。
+                                        swtich(attType){
+                                            case 1:
+                                                Log.Warning("解析到来自"+att["att_topic.att_group.name"]?.Value<String>()+"的讨论话题"+att["att_topic.content"]?.Value<String>());
+                                                break;
+                                            default:
+                                                Log.Error("解析失败，attachmentType != 15");
+                                                Log.Error("{V}", att.ToString());
+                                        }
                                         continue;
                                     }
 
