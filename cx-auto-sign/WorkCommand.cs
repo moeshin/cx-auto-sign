@@ -23,8 +23,6 @@ namespace cx_auto_sign
 
         private WebsocketClient _ws;
 
-        private readonly System.Timers.Timer _heartTimer = new();
-
         protected override async Task<int> OnExecuteAsync(CommandLineApplication app)
         {
             await Program.CheckUpdate();
@@ -91,23 +89,10 @@ namespace cx_auto_sign
             }))
             {
                 _ws.ReconnectionHappened.Subscribe(info =>
-                {
-                    if (info.Type == ReconnectionType.Initial)
-                    {
-                        Log.Information("CXIM 已连接");
-                        _heartTimer.Interval = 30000;
-                        _heartTimer.Elapsed += (_, _) =>
-                        {
-                            Log.Error("CXIM: 30s 内没有接收到心跳包");
-                        };
-                        _heartTimer.Start();
-                        return;
-                    }
-                    Log.Warning("CXIM 重新连接，类型：{Type}", info.Type);
-                });
+                    Log.Warning("CXIM: Reconnection happened, type: {Type}", info.Type));
                 _ws.DisconnectionHappened.Subscribe(info => Log.Error(
                     info.Exception,
-                    "CXIM 断开连接，类型：{Type}，状态：{Status}",
+                    "CXIM: Disconnection happened: {Type} {Status}",
                     info.Type,
                     info.CloseStatus
                 ));
@@ -117,19 +102,11 @@ namespace cx_auto_sign
                     var startTime = Helper.GetTimestampMs();
                     try
                     {
-                        // 对心跳包进行屏蔽，这部分导致日志膨胀且意义不大
-                        if(msg.Text.Length == 1 && msg.Text == "h"){
-                            _heartTimer.Stop();
-                            _heartTimer.Start();
-                        }
-                        else
-                        {
-                            Log.Information(
-                                "CXIM 接收到消息 {Size}: {Message}",
-                                msg.Text.Length,
-                                msg.Text
-                            );
-                        }
+                        Log.Information(
+                            "CXIM: Message received: {Size} {Message}",
+                            msg.Text.Length,
+                            msg.Text
+                        );
                         if (msg.Text.StartsWith("o"))
                         {
                             Log.Information("CXIM 登录");
@@ -215,8 +192,17 @@ namespace cx_auto_sign
                                     var attType = att["attachmentType"]?.Value<int>();
                                     if (attType != 15)
                                     {
-                                        Log.Error("解析失败，attachmentType != 15");
-                                        Log.Error("{V}", att.ToString());
+                                        swtich(attType){
+                                            case 1:{
+                                                // 不太确定这一行写的有没有问题，我不会用C#只能根据Java尽量编写正确的获取方法。
+                                                Log.Warning("课程"+att["att_topic.att_group.name"]?.Value<String>()+"发起了讨论,讨论主题为"+att["att_topic.content"]?.Value<String>());
+                                                break;
+                                            }
+                                            default:{
+                                                Log.Error("解析失败，attachmentType != 15");
+                                                Log.Error("{V}", att.ToString());
+                                            }
+                                        }
                                         continue;
                                     }
 
@@ -432,27 +418,26 @@ namespace cx_auto_sign
 
         private static SignType GetSignType(JToken data)
         {
-            var id = data["otherId"].Value<int>();
-            switch (id)
+            var otherId = data["otherId"].Value<int>();
+            switch (otherId)
             {
-                case < 0 or (int)SignType.Photo or >= (int)SignType.Length:
-                    return SignType.Unknown;
-                case 0:
-                {
+                case 2:
+                    return SignType.Qr;
+                case 3:
+                    return SignType.Gesture;
+                case 4:
+                    return SignType.Location;
+                default:
                     var token = data["ifphoto"];
-                    if (token?.Type == JTokenType.Integer && token.Value<int>() != 0)
-                    {
-                        return SignType.Photo;
-                    }
-                    break;
-                }
+                    return token?.Type == JTokenType.Integer && token.Value<int>() != 0
+                        ? SignType.Photo
+                        : SignType.Normal;
             }
-            return (SignType)id;
         }
 
         private void WsSend(string msg)
         {
-            Log.Information("CXIM 发送消息 {Size}: {Message}", msg.Length, msg);
+            Log.Information("CXIM: Message send: {Message}", msg);
             _ws.Send(msg);
         }
     }
