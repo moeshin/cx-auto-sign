@@ -208,13 +208,30 @@ namespace cx_auto_sign
                                     var att = Cxim.GetAttachment(pkgBytes, ref index, sessionEnd);
                                     if (att == null)
                                     {
-                                        Log.Error("解析失败，无法获取 Attachment");
+                                        Log.Information("ChatId: {ChatId}", chatId);
+                                        if (Cxim.BytesIndexOf(pkgBytes, Cxim.CmdCourseChatFeedback.BytesCmd) != -1)
+                                        {
+                                            Log.Information(
+                                                "收到来自《{Name}》的群聊：{State}",
+                                                userConfig.GetCourse(chatId)?.CourseName,
+                                                Cxim.CmdCourseChatFeedback.GetStateString(pkgBytes)
+                                            );
+                                            Log.Information(
+                                                "ActiveId: {ActiveId}",
+                                                Cxim.CmdCourseChatFeedback.GetActiveId(pkgBytes)
+                                            );
+                                        }
+                                        else
+                                        {
+                                            Log.Error("解析失败，无法获取 Attachment");
+                                        }
                                         continue;
                                     }
 
                                     var attType = att["attachmentType"]?.Value<int>();
                                     if (attType != 15)
                                     {
+                                        Log.Information("ChatId: {ChatId}", chatId);
                                         switch (attType){
                                             case 1:
                                             {
@@ -240,6 +257,7 @@ namespace cx_auto_sign
                                     var attCourse = att["att_chat_course"];
                                     if (attCourse == null)
                                     {
+                                        Log.Information("ChatId: {ChatId}", chatId);
                                         Log.Error("解析失败，无法获取 att_chat_course");
                                         Log.Error("{V}", att.ToString());
                                         continue;
@@ -326,7 +344,6 @@ namespace cx_auto_sign
                                         type: 4: 直播
                                         没有通知：计时器
                                         没有测试：腾讯会议
-                                        无法解析：群聊
                                          */
                                         log.Error("不是签到活动");
                                         // log.Warning("{V}", att.ToString());

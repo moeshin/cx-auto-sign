@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Newtonsoft.Json.Linq;
 
@@ -96,7 +97,7 @@ namespace cx_auto_sign
             return start > end ? null : json;
         }
 
-        private static int BytesIndexOf(IReadOnlyList<byte> bytes, IReadOnlyList<byte> value,
+        public static int BytesIndexOf(IReadOnlyList<byte> bytes, IReadOnlyList<byte> value,
             int start = 0, int end = 0)
         {
             var length = value.Count;
@@ -157,6 +158,191 @@ namespace cx_auto_sign
         public static int ReadEnd2(IReadOnlyList<byte> bytes, ref int index)
         {
             return ReadLength2(bytes, ref index) + index;
+        }
+
+        private static LongBits ReadLong(IReadOnlyList<byte> bytes, ref int index)
+        {
+            var length = bytes.Count;
+            var n = new LongBits();
+            byte b;
+            if (!(length - index > 4))
+            {
+                for (var i = 0; i < 3; ++i)
+                {
+                    if (index >= length)
+                    {
+                        throw new IndexOutOfRangeException($"index out of range: {index} + 1 > {length}");
+                    }
+                    b = bytes[index++];
+                    n.Low = (uint)(n.Low | (uint)((127 & b) << 7 * i));
+                    if (b < 128)
+                    {
+                        return n;
+                    }
+                }
+                n.Low = (uint)(n.Low | (uint)((127 & bytes[index++]) << 7 * 3));
+                return n;
+            }
+            for (var i = 0; i < 4; ++i)
+            {
+                b = bytes[index++];
+                n.Low = (uint)(n.Low | (uint)((127 & b) << 7 * i));
+                if (b < 128)
+                {
+                    return n;
+                }
+            }
+            b = bytes[index++];
+            n.Low = (uint)(n.Low | (uint)((127 & b) << 28));
+            n.High = (uint)(n.High | (uint)((127 & b) >> 4));
+            if (b < 128)
+            {
+                return n;
+            }
+            if (length - index > 4)
+            {
+                for (var i = 0; i < 5; ++i)
+                {
+                    b = bytes[index++];
+                    n.High = (uint)(n.High | (uint)((127 & b) << 7 * i + 3));
+                    if (b < 128)
+                    {
+                        return n;
+                    }
+                }
+            }
+            else
+            {
+                for (var i = 0; i < 5; ++i)
+                {
+                    if (index >= length)
+                    {
+                        throw new IndexOutOfRangeException($"index out of range: {index} + 1 > {length}");
+                    }
+                    b = bytes[index++];
+                    n.High = (uint)(n.High | (uint)((127 & b) << 7 * i + 3));
+                    if (b < 128)
+                    {
+                        return n;
+                    }
+                }
+            }
+            throw new Exception("invalid variant encoding");
+        }
+
+        private const long L1E8H = 0x100000000L;
+
+        private class LongBits
+        {
+            public long Low;
+            public long High;
+
+            public LongBits(long low = 0, long high = 0)
+            {
+                Low = low;
+                High = high;
+            }
+
+            // public long ToNumber(bool e = false)
+            // {
+            //     if (e || (uint)High >> 31 == 0)
+            //     {
+            //         return Low + L1E8H * High;
+            //     }
+            //     var t = 1 + (uint)~Low;
+            //     var r = (uint)~this.High;
+            //     if (t != 0)
+            //     {
+            //         ++r;
+            //     }
+            //     return -(t + L1E8H * r);
+            // }
+
+            public Long ToLong(bool unsigned = false)
+            {
+                return new Long(Low, High, unsigned);
+            }
+
+            public override string ToString()
+            {
+                return $"{{ Low: {Low}, High: {High} }}";
+            }
+        }
+
+        private class Long
+        {
+            private readonly long _low;
+            private readonly long _high;
+            private readonly bool _unsigned;
+
+            public Long(long low, long high, bool unsigned)
+            {
+                _low = low;
+                _high = high;
+                _unsigned = unsigned;
+            }
+
+            public long ToNumber()
+            {
+                var uLow = (uint)_low >> 0;
+                return _unsigned
+                    ? (uint)_high * L1E8H + uLow
+                    : _high * L1E8H + uLow;
+            }
+
+            public bool IsZero()
+            {
+                return _low == 0 && _high == 0;
+            }
+
+            public override string ToString()
+            {
+                return $"{{ Low: {_low}, High: {_high}, Unsigned: {_unsigned} }}";
+            }
+        }
+        
+        public static class CmdCourseChatFeedback
+        {
+            public static readonly byte[] BytesCmd =
+                new byte[] { 0x52, 0x18 }.Concat(Encoding.ASCII.GetBytes("CMD_COURSE_CHAT_FEEDBACK")).ToArray();
+
+            private static readonly byte[] BytesAid =
+                new byte[] { 0x0A, 0x03 }.Concat(Encoding.ASCII.GetBytes("aid")).ToArray();
+
+            private static readonly byte[] BytesState =
+                new byte[] { 0x0A, 0x0B }.Concat(Encoding.ASCII.GetBytes("stuFeedback")).ToArray();
+
+            private static bool? GetState(IReadOnlyList<byte> bytes)
+            {
+                var i = BytesIndexOf(bytes, BytesState);
+                if (i == -1)
+                {
+                    return null;
+                }
+                i += BytesState.Length + 3;
+                return !ReadLong(bytes, ref i).ToLong().IsZero();
+            }
+            
+            public static string GetStateString(IReadOnlyList<byte> bytes)
+            {
+                var b = GetState(bytes);
+                if (b == null)
+                {
+                    return null;
+                }
+                return (bool)b ? "开启" : "关闭";
+            }
+
+            public static string GetActiveId(IReadOnlyList<byte> bytes)
+            {
+                var i = BytesIndexOf(bytes, BytesAid);
+                if (i == -1)
+                {
+                    return null;
+                }
+                i += BytesAid.Length + 3;
+                return ReadLong(bytes, ref i).ToLong().ToNumber().ToString();
+            }
         }
     }
 }
