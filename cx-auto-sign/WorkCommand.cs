@@ -341,9 +341,10 @@ namespace cx_auto_sign
                                         43: 投票
                                         49: 白板
 
-                                        type: 4: 直播
-                                        没有通知：计时器
+                                        没有通知：计时器 47
                                         没有测试：腾讯会议
+
+                                        type: 4: 直播
                                          */
                                         log.Error("不是签到活动");
                                         // log.Warning("{V}", att.ToString());
