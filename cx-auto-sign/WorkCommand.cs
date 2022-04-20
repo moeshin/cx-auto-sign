@@ -218,7 +218,7 @@ namespace cx_auto_sign
                                         // 这部分需要进行审核，因为我不太会写C#代码。
                                         switch (attType){
                                             case 1:
-                                                Log.info("解析到来自"+att["att_topic.att_group.name"]?.Value<String>()+"的"+att["att_topic.title"]?.Value<String>()+"讨论话题,内容"+att["att_topic.content"]?.Value<String>());
+                                                Log.Information("解析到来自"+att["att_topic.att_group.name"]?.Value<String>()+"的"+att["att_topic.title"]?.Value<String>()+"讨论话题,内容"+att["att_topic.content"]?.Value<String>());
                                                 break;
                                             default:
                                                 Log.Error("解析失败，attachmentType != 15");
