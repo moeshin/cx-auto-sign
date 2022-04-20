@@ -223,6 +223,7 @@ namespace cx_auto_sign
                                             default:
                                                 Log.Error("解析失败，attachmentType != 15");
                                                 Log.Error("{V}", att.ToString());
+                                                break;
                                         }
                                         continue;
                                     }
