@@ -216,7 +216,7 @@ namespace cx_auto_sign
                                     if (attType != 15)
                                     {
                                         // 这部分需要进行审核，因为我不太会写C#代码。
-                                        swtich(attType){
+                                        switch (attType){
                                             case 1:
                                                 Log.Warning("解析到来自"+att["att_topic.att_group.name"]?.Value<String>()+"的讨论话题"+att["att_topic.content"]?.Value<String>());
                                                 break;
