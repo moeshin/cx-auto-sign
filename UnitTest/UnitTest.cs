@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using cx_auto_sign;
 using CxSignHelper.Models;
@@ -128,6 +129,34 @@ namespace UnitTest
             {
                 SignWork.GetSignTypeName((SignType)i);
             }
+        }
+
+        private static long CximReadLong(IReadOnlyList<byte> bytes, int index = 0)
+        {
+            var l = Cxim.ReadLong(bytes, ref index);
+            // Log.Information("{V}", l);
+            return l.ToLong().ToNumber();
+        }
+
+        [Test]
+        [TestCase(2000020909381, new byte[] { 0xC5, 0xDA, 0xA4, 0xD4, 0x9A, 0x3A })]
+        [TestCase(2000020832716, new byte[] { 0xCC, 0x83, 0xA0, 0xD4, 0x9A, 0x3A })]
+        [TestCase(2000020829804, new byte[] { 0xEC, 0xEC, 0x9F, 0xD4, 0x9A, 0x3A })]
+        public void TestCximReadLong(long expected, IReadOnlyList<byte> bytes)
+        {
+            Assert.AreEqual(expected, CximReadLong(bytes));
+        }
+
+        [Test]
+        [TestCase(2000020909381, 2861116741, 465)]
+        [TestCase(2000020832716, 2861040076, 465)]
+        [TestCase(2000020829804, 2861037164, 465)]
+        [TestCase(2000020909381, -1433850555, 465)]
+        [TestCase(2000020832716, -1433927220, 465)]
+        [TestCase(2000020829804, -1433930132, 465)]
+        public void TestCximLong(long expected, long low, long high, bool unsigned = false)
+        {
+            Assert.AreEqual(expected, new Cxim.Long(low, high, unsigned).ToNumber());
         }
     }
 }

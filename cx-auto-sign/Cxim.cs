@@ -160,7 +160,7 @@ namespace cx_auto_sign
             return ReadLength2(bytes, ref index) + index;
         }
 
-        private static LongBits ReadLong(IReadOnlyList<byte> bytes, ref int index)
+        public static LongBits ReadLong(IReadOnlyList<byte> bytes, ref int index)
         {
             var length = bytes.Count;
             var n = new LongBits();
@@ -232,7 +232,7 @@ namespace cx_auto_sign
 
         private const long L1E8H = 0x100000000L;
 
-        private class LongBits
+        public class LongBits
         {
             public long Low;
             public long High;
@@ -269,7 +269,7 @@ namespace cx_auto_sign
             }
         }
 
-        private class Long
+        public class Long
         {
             private readonly long _low;
             private readonly long _high;
