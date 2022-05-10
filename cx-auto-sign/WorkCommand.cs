@@ -405,7 +405,7 @@ namespace cx_auto_sign
                                                 = await work.GetImageIdAsync(client, DateTime.Now);
                                             log.Information(
                                                 "预览：{Url}",
-                                                $"https://p.ananas.chaoxing.com/star3/170_220c/{iid}"
+                                                Helper.GetSignPhotoUrl(iid)
                                             );
                                             break;
                                         case SignType.Location:

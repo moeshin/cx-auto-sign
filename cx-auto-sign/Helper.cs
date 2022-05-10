@@ -159,5 +159,12 @@ namespace cx_auto_sign
             RulePhotoSignError(key);
             return false;
         }
+
+        public static string GetSignPhotoUrl(string iid, bool src = false)
+        {
+            return (src
+                ? "https://p.ananas.chaoxing.com/star3/origin/"
+                : "https://p.ananas.chaoxing.com/star3/170_220c/") + iid;
+        }
     }
 }

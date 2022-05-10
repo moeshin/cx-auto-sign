@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CxSignHelper;
 using CxSignHelper.Models;
 using McMaster.Extensions.CommandLineUtils;
 using Newtonsoft.Json.Linq;
@@ -55,7 +56,11 @@ namespace cx_auto_sign
             {
                 if (Type == SignType.Photo)
                 {
-                    await work.GetImageIdAsync(null, Date == DateTime.MinValue ? DateTime.Now : Date);
+                    var client = await CxSignClient.LoginAsync(
+                        userConfig.Username, userConfig.Password, userConfig.Fid);
+                    var iid = await work.GetImageIdAsync(client, Date == DateTime.MinValue ? DateTime.Now : Date);
+                    log.Information("预览（略缩图）：{Url}", Helper.GetSignPhotoUrl(iid));
+                    log.Information("预览（原图）：{Url}", Helper.GetSignPhotoUrl(iid, true));
                 }
                 Notification.Status(log, true);
                 Notification.Send(log);
