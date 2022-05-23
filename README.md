@@ -109,6 +109,10 @@ cx-auto-sign
   "SmtpUsername": "", // Smtp 发件邮箱
   "SmtpPassword": "", // Smtp 发件密码
   "SmtpSecure": true, // Smtp 是否使用 SSL
+  
+  // 电报 Telegram Bot 推送，可以在 应用配置 和 用户配置 中配置
+  "TelegramBotToken": "",
+  "TelegramBotChatId": "",
 
   // 签到配置，可以在 应用配置、用户配置 和 课程配置 中配置
   "SignEnable": false,  // 允许自动，注意：默认是不会自动签到的！！！

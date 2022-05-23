@@ -19,6 +19,9 @@ namespace cx_auto_sign
         public readonly string SmtpPassword;
         public readonly bool   SmtpSecure;
 
+        public readonly string TelegramBotToken;
+        public readonly string TelegramBotChatId;
+
         public static readonly JObject Default = new()
         {
             [nameof(ServerChanKey)] = "",
@@ -29,7 +32,10 @@ namespace cx_auto_sign
             [nameof(SmtpPort)] = 0,
             [nameof(SmtpUsername)] = "",
             [nameof(SmtpPassword)] = "",
-            [nameof(SmtpSecure)] = false
+            [nameof(SmtpSecure)] = false,
+            
+            [nameof(TelegramBotToken)] = "",
+            [nameof(TelegramBotChatId)] = ""
         };
 
         public UserConfig(BaseDataConfig app, BaseDataConfig user)
@@ -46,6 +52,9 @@ namespace cx_auto_sign
             SmtpUsername = GetString(nameof(SmtpUsername));
             SmtpPassword = GetString(nameof(SmtpPassword));
             SmtpSecure = GetBool(nameof(SmtpSecure));
+
+            TelegramBotToken = GetString(nameof(TelegramBotToken));
+            TelegramBotChatId = GetString(nameof(TelegramBotChatId));
         }
 
         protected override JToken Get(string key)

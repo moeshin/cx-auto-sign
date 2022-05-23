@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Text;
 using CxSignHelper;
 using MailKit.Net.Smtp;
@@ -53,6 +54,7 @@ namespace cx_auto_sign
                     NotifyByEmail(content);
                     NotifyByServerChan(content);
                     NotifyByPushPlus(content);
+                    NotifyByTelegramBot(content);
                     return;
                 }
             }
@@ -226,6 +228,51 @@ namespace cx_auto_sign
             catch (Exception e)
             {
                 _log.Error(e, "发送 PushPlus 通知失败!");
+            }
+        }
+
+        private static void NotifyByTelegramBot(string token, string chatId, string text)
+        {
+            var client = new RestClient($"https://api.telegram.org/bot{token}/sendMessage");
+            var request = new RestRequest(Method.POST);
+            request.AddJsonBody(new JObject
+            {
+                ["chat_id"] = chatId,
+                ["text"] = text
+            }.ToString());
+            var response = client.Execute(request);
+            CxSignClient.TestResponseCode(response);
+            var json = JObject.Parse(response.Content);
+            if (json["ok"]?.Value<bool>() != true)
+            {
+                throw new Exception(response.Content);
+            }
+        }
+
+        private void NotifyByTelegramBot(string content)
+        {
+            if (string.IsNullOrEmpty(_userConfig.TelegramBotToken))
+            {
+                _log.Warning("由于 {Name} 为空，没有发送 Telegram Bot 通知",
+                    nameof(UserConfig.PushPlusToken));
+                return;
+            }
+            if (string.IsNullOrEmpty(_userConfig.TelegramBotChatId))
+            {
+                _log.Warning("由于 {Name} 为空，没有发送 Telegram Bot 通知",
+                    nameof(UserConfig.TelegramBotChatId));
+                return;
+            }
+            try
+            {
+                _log.Information("正在发送 Telegram Bot 通知");
+                NotifyByTelegramBot(_userConfig.TelegramBotToken, _userConfig.TelegramBotChatId,
+                    GetTitle() + "\n" + content);
+                _log.Information("已发送 Telegram Bot 通知");
+            }
+            catch (Exception e)
+            {
+                _log.Error(e, "发送 Telegram Bot 通知失败!");
             }
         }
 
