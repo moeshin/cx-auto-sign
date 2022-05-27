@@ -108,6 +108,7 @@ namespace CxSignHelper
             request.AddParameter("address", signOptions.Address);
             request.AddParameter("objectId", signOptions.ImageId);
             var response = await client.ExecuteGetAsync(request);
+            TestResponseCode(response);
             return response.Content;
         }
 
@@ -190,12 +191,24 @@ namespace CxSignHelper
             request.AddParameter("_token", await GetPanTokenAsync());
             request.AddFile("file", path);
             var response = await client.ExecutePostAsync(request);
+            TestResponseCode(response);
             var json = JObject.Parse(response.Content);
             if (json["result"]!.Value<bool>() != true)
             {
                 throw new Exception(json["msg"]?.Value<string>());
             }
             return json["objectId"]!.Value<string>();
+        }
+
+        public async Task PreSignAsync(string activeId)
+        {
+            var client = new RestClient($"https://mobilelearn.chaoxing.com/newsign/preSign?activePrimaryId={activeId}")
+            {
+                CookieContainer = _cookie
+            };
+            var request = new RestRequest(Method.GET);
+            var response = await client.ExecuteGetAsync(request);
+            TestResponseCode(response);
         }
 
         private void ParseCookies()

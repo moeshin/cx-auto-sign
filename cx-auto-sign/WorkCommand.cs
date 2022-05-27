@@ -424,6 +424,9 @@ namespace cx_auto_sign
                                             }
                                             break;
                                     }
+                                    
+                                    log.Information("签到准备中");
+                                    await client.PreSignAsync(activeId);
 
                                     var taskTime = data["starttime"]!.Value<long>();
                                     log.Information("任务时间: {Time}", taskTime);
