@@ -101,6 +101,12 @@ cx-auto-sign
   // 通知，可以在 应用配置 和 用户配置 中配置
   "ServerChanKey": "", // Server 酱的 SendKey https://sct.ftqq.com/sendkey
   "PushPlusToken": "", // PushPlus 的 Token https://www.pushplus.plus/
+  "BarkUrl": "", // Bark，例如：https://api.day.app/yourkey
+
+  // 电报 Telegram Bot 推送，可以在 应用配置 和 用户配置 中配置
+  // 详见：https://gist.github.com/dideler/85de4d64f66c1966788c1b2304b9caf1
+  "TelegramBotToken": "",
+  "TelegramBotChatId": "",
 
   // 邮箱通知，可以在 应用配置 和 用户配置 中配置
   "Email": "",        // 接收通知的邮箱
@@ -109,10 +115,6 @@ cx-auto-sign
   "SmtpUsername": "", // Smtp 发件邮箱
   "SmtpPassword": "", // Smtp 发件密码
   "SmtpSecure": true, // Smtp 是否使用 SSL
-  
-  // 电报 Telegram Bot 推送，可以在 应用配置 和 用户配置 中配置
-  "TelegramBotToken": "",
-  "TelegramBotChatId": "",
 
   // 签到配置，可以在 应用配置、用户配置 和 课程配置 中配置
   "SignEnable": false,  // 允许自动，注意：默认是不会自动签到的！！！

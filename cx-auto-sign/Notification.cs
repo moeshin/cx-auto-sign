@@ -54,6 +54,7 @@ namespace cx_auto_sign
                     NotifyByServerChan(content);
                     NotifyByPushPlus(content);
                     NotifyByTelegramBot(content);
+                    NotifyByBark(content);
                     return;
                 }
             }
@@ -126,9 +127,14 @@ namespace cx_auto_sign
 
         private void NotifyByEmail(string content)
         {
+            const string name = "邮件";
             if (string.IsNullOrEmpty(_userConfig.Email))
             {
-                _log.Warning("由于 {Name} 为空，没有发送邮件通知", nameof(UserConfig.Email));
+                _log.Warning(
+                    "由于 {Key} 为空，没有发送 {Name} 通知",
+                    nameof(UserConfig.Email),
+                    name
+                );
                 return;
             }
             if (string.IsNullOrEmpty(_userConfig.SmtpHost) ||
@@ -140,15 +146,15 @@ namespace cx_auto_sign
             }
             try
             {
-                _log.Information("正在发送邮件通知");
+                _log.Information("正在发送 {Name} 通知", name);
                 NotifyByEmail(GetTitle(), content,
                     _userConfig.Email, _userConfig.SmtpHost, _userConfig.SmtpPort,
                     _userConfig.SmtpUsername, _userConfig.SmtpPassword, _userConfig.SmtpSecure);
-                _log.Information("已发送邮件通知");
+                _log.Information("已发送 {Name} 通知", name);
             }
             catch (Exception e)
             {
-                _log.Error(e, "发送邮件通知失败!");
+                _log.Error(e, "发送 {Name} 通知失败!", name);
             }
         }
 
@@ -172,21 +178,25 @@ namespace cx_auto_sign
 
         private void NotifyByServerChan(string content)
         {
+            const string name = "ServerChan";
             if (string.IsNullOrEmpty(_userConfig.ServerChanKey))
             {
-                _log.Warning("由于 {Name} 为空，没有发送 ServerChan 通知", 
-                    nameof(UserConfig.ServerChanKey));
+                _log.Warning(
+                    "由于 {Key} 为空，没有发送 {Name} 通知",
+                    nameof(UserConfig.ServerChanKey),
+                    name
+                );
                 return;
             }
             try
             {
-                _log.Information("正在发送 ServerChan 通知");
+                _log.Information("正在发送 {Name} 通知", name);
                 NotifyByServerChan(_userConfig.ServerChanKey, GetTitle(), content);
-                _log.Information("已发送 ServerChan 通知");
+                _log.Information("已发送 {Name} 通知", name);
             }
             catch (Exception e)
             {
-                _log.Error(e, "发送 ServerChan 通知失败!");
+                _log.Error(e, "发送 {Name} 通知失败!", name);
             }
         }
 
@@ -212,21 +222,25 @@ namespace cx_auto_sign
 
         private void NotifyByPushPlus(string content)
         {
+            const string name = "Push Plus";
             if (string.IsNullOrEmpty(_userConfig.PushPlusToken))
             {
-                _log.Warning("由于 {Name} 为空，没有发送 PushPlus 通知",
-                    nameof(UserConfig.PushPlusToken));
+                _log.Warning(
+                    "由于 {Key} 为空，没有发送 {Name} 通知",
+                    nameof(UserConfig.PushPlusToken),
+                    name
+                );
                 return;
             }
             try
             {
-                _log.Information("正在发送 PushPlus 通知");
+                _log.Information("正在发送 {Name} 通知", name);
                 NotifyByPushPlus(_userConfig.PushPlusToken, GetTitle(), content);
-                _log.Information("已发送 PushPlus 通知");
+                _log.Information("已发送 {Name} 通知", name);
             }
             catch (Exception e)
             {
-                _log.Error(e, "发送 PushPlus 通知失败!");
+                _log.Error(e, "发送 {Name} 通知失败!", name);
             }
         }
 
@@ -250,28 +264,76 @@ namespace cx_auto_sign
 
         private void NotifyByTelegramBot(string content)
         {
+            const string name = "Telegram Bot";
             if (string.IsNullOrEmpty(_userConfig.TelegramBotToken))
             {
-                _log.Warning("由于 {Name} 为空，没有发送 Telegram Bot 通知",
-                    nameof(UserConfig.PushPlusToken));
+                _log.Warning(
+                    "由于 {Key} 为空，没有发送 {Name} 通知",
+                    nameof(UserConfig.PushPlusToken),
+                    name
+                );
                 return;
             }
             if (string.IsNullOrEmpty(_userConfig.TelegramBotChatId))
             {
-                _log.Warning("由于 {Name} 为空，没有发送 Telegram Bot 通知",
-                    nameof(UserConfig.TelegramBotChatId));
+                _log.Warning(
+                    "由于 {Key} 为空，没有发送 {Name} 通知",
+                    nameof(UserConfig.TelegramBotChatId),
+                    name
+                );
                 return;
             }
             try
             {
-                _log.Information("正在发送 Telegram Bot 通知");
+                _log.Information("正在发送 {Name} 通知", name);
                 NotifyByTelegramBot(_userConfig.TelegramBotToken, _userConfig.TelegramBotChatId,
                     GetTitle() + "\n" + content);
-                _log.Information("已发送 Telegram Bot 通知");
+                _log.Information("已发送 {Name} 通知", name);
             }
             catch (Exception e)
             {
-                _log.Error(e, "发送 Telegram Bot 通知失败!");
+                _log.Error(e, "发送 {Name} 通知失败!", name);
+            }
+        }
+
+        private static void NotifyBark(string title, string content, string url)
+        {
+            var client = new RestClient(url);
+            var request = new RestRequest(Method.POST);
+            request.AddParameter("title", title);
+            request.AddParameter("body", content);
+            request.AddParameter("category", Title);
+            request.AddParameter("level", "timeSensitive");
+            var response = client.Execute(request);
+            CxSignClient.TestResponseCode(response);
+            var json = JObject.Parse(response.Content);
+            if (json["code"]?.Value<int>() != 200)
+            {
+                throw new Exception(json["message"]?.Value<string>() ?? response.Content);
+            }
+        }
+        
+        private void NotifyByBark(string content)
+        {
+            const string name = "Bark";
+            if (string.IsNullOrEmpty(_userConfig.BarkUrl))
+            {
+                _log.Warning(
+                    "由于 {Key} 为空，没有发送 {Name} 通知",
+                    nameof(UserConfig.BarkUrl),
+                    name
+                );
+                return;
+            }
+            try
+            {
+                _log.Information("正在发送 {Name} 通知", name);
+                NotifyBark(GetTitle(), content, _userConfig.BarkUrl);
+                _log.Information("已发送 {Name} 通知", name);
+            }
+            catch (Exception e)
+            {
+                _log.Error(e, "发送 {Name} 通知失败!", name);
             }
         }
 

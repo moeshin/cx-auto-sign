@@ -10,6 +10,10 @@ namespace cx_auto_sign
         // Notification
         public readonly string ServerChanKey;
         public readonly string PushPlusToken;
+        public readonly string BarkUrl;
+
+        public readonly string TelegramBotToken;
+        public readonly string TelegramBotChatId;
 
         // Email
         public readonly string Email;
@@ -19,13 +23,14 @@ namespace cx_auto_sign
         public readonly string SmtpPassword;
         public readonly bool   SmtpSecure;
 
-        public readonly string TelegramBotToken;
-        public readonly string TelegramBotChatId;
-
         public static readonly JObject Default = new()
         {
             [nameof(ServerChanKey)] = "",
             [nameof(PushPlusToken)] = "",
+            [nameof(BarkUrl)] = "",
+
+            [nameof(TelegramBotToken)] = "",
+            [nameof(TelegramBotChatId)] = "",
 
             [nameof(Email)] = "",
             [nameof(SmtpHost)] = "",
@@ -33,9 +38,6 @@ namespace cx_auto_sign
             [nameof(SmtpUsername)] = "",
             [nameof(SmtpPassword)] = "",
             [nameof(SmtpSecure)] = false,
-            
-            [nameof(TelegramBotToken)] = "",
-            [nameof(TelegramBotChatId)] = ""
         };
 
         public UserConfig(BaseDataConfig app, BaseDataConfig user)
@@ -45,6 +47,10 @@ namespace cx_auto_sign
 
             ServerChanKey = GetMustString(nameof(ServerChanKey));
             PushPlusToken = GetMustString(nameof(PushPlusToken));
+            BarkUrl = GetMustString(nameof(BarkUrl));
+            
+            TelegramBotToken = GetMustString(nameof(TelegramBotToken));
+            TelegramBotChatId = GetMustString(nameof(TelegramBotChatId));
 
             Email = GetMustString(nameof(Email));
             SmtpHost = GetString(nameof(SmtpHost));
@@ -52,9 +58,6 @@ namespace cx_auto_sign
             SmtpUsername = GetString(nameof(SmtpUsername));
             SmtpPassword = GetString(nameof(SmtpPassword));
             SmtpSecure = GetBool(nameof(SmtpSecure));
-
-            TelegramBotToken = GetString(nameof(TelegramBotToken));
-            TelegramBotChatId = GetString(nameof(TelegramBotChatId));
         }
 
         protected override JToken Get(string key)
