@@ -231,7 +231,8 @@ namespace CxSignHelper
             var code = response.StatusCode;
             if (code != HttpStatusCode.OK)
             {
-                throw new Exception($"非 200 状态响应：{code:D} {code:G}\n{response.Content}");
+                throw new Exception($"非 200 状态响应：{code:D} {code:G}\n{response.Content}",
+                    response.ErrorException);
             }
         }
 
