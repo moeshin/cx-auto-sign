@@ -3,7 +3,10 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using System;
+using System.IO;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -25,38 +28,43 @@ namespace CxSignHelper
 
         public static async Task<CxSignClient> LoginAsync(string username, string password, string fid = null)
         {
-            RestClient client;
-            IRestResponse response;
+            var request = new RestRequest(Method.POST);
             if (string.IsNullOrEmpty(fid))
             {
-                client = new RestClient("https://passport2-api.chaoxing.com")
-                {
-                    CookieContainer = new CookieContainer()
-                };
-                var request = new RestRequest("v11/loginregister");
+                request.Resource = "http://passport2.chaoxing.com/fanyalogin";
                 request.AddParameter("uname", username);
-                request.AddParameter("code", password);
-                response = await client.ExecuteGetAsync(request);
+                request.AddParameter("password", EncryptDesEcbPkcs7(password));
+                request.AddParameter("fid", -1);
+                request.AddParameter("t", true);
             }
             else
             {
-                client = new RestClient($"https://passport2-api.chaoxing.com/v6/idNumberLogin?fid={fid}&idNumber={username}")
-                {
-                    CookieContainer = new CookieContainer()
-                };
-                var request = new RestRequest(Method.POST);
+                request.Resource = $"https://passport2-api.chaoxing.com/v6/idNumberLogin?fid={fid}&idNumber={username}";
                 request.AddHeader("Content-Type", "application/x-www-form-urlencoded");
                 request.AddParameter("pwd", password);
                 request.AddParameter("t", "0");
-                response = await client.ExecutePostAsync(request);
             }
+            var client = new RestClient
+            {
+                CookieContainer = new CookieContainer()
+            };
+            var response = await client.ExecuteAsync(request);
             TestResponseCode(response);
             var loginObject = JsonConvert.DeserializeObject<LoginObject>(response.Content);
-            if (loginObject.Status != true)
+            if (loginObject.Status)
             {
-                throw new Exception(loginObject.Message);
+                return new CxSignClient(client.CookieContainer);
             }
-            return new CxSignClient(client.CookieContainer);
+            var msg = loginObject.Msg ?? loginObject.Msg2;
+            // ReSharper disable once InvertIf
+            if (fid == null)
+            {
+                if (msg == "参数为空")
+                {
+                    msg = "账号或密码错误";
+                }
+            }
+            throw new Exception(msg ?? response.Content);
         }
 
         private async Task<string> GetPanTokenAsync()
@@ -234,6 +242,23 @@ namespace CxSignHelper
                 throw new Exception("Message: " + json["msg"]?.Value<string>() +
                                     "\nError Message: " + json["errorMsg"]?.Value<string>());
             }
+        }
+        
+        private static readonly byte[] DesEcbPkcs7Key = Encoding.UTF8.GetBytes("u2oh6Vu^"); // u2oh6Vu^HWe40fj
+        private static string EncryptDesEcbPkcs7(string data)
+        {
+            using var mStream = new MemoryStream();
+            var des = new DESCryptoServiceProvider
+            {
+                Mode = CipherMode.ECB,
+                Padding = PaddingMode.PKCS7,
+                Key = DesEcbPkcs7Key
+            };
+            var encryptor = des.CreateEncryptor();
+            using var cStream = new CryptoStream(mStream, encryptor, CryptoStreamMode.Write);
+            cStream.Write(Encoding.UTF8.GetBytes(data));
+            cStream.FlushFinalBlock();
+            return Convert.ToHexString(mStream.ToArray()).ToLower();
         }
     }
 }
