@@ -303,6 +303,11 @@ WebApi 默认监听规则是 `http://localhost:5743`，可在配置文件中修�
 ### 1. 如何关闭自动更新检测? 
 在 `cx-auto-sign.dll` 所在目录下创建一个名为 `.noupdate` 的文件。
 
+## 相关项目
+
+* [Clansty/superstar-checkin](https://github.com/Clansty/superstar-checkin) 调用环信 SDK
+* [cxOrz/chaoxing-sign-cli](https://github.com/cxOrz/chaoxing-sign-cli) CLI
+
 ## 声明
 
 一切开发旨在学习，请勿用于非法用途。
