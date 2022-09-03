@@ -61,7 +61,8 @@ namespace cx_auto_sign
             }
             else
             {
-                log.Information("课程：{Name}", course.CourseName);
+                log.Information("课程名：{CourseName}", course.CourseName);
+                log.Information("班级名：{ClassName}", course.ClassName);
             }
             work.SetCourseConfig(new CourseConfig(appConfig, userConfig, course));
             // ReSharper disable once InvertIf

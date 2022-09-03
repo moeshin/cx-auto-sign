@@ -9,7 +9,7 @@ namespace cx_auto_sign
         public readonly string CourseId = null;
         public readonly string ClassId = null;
         public string CourseName => GetString(nameof(CourseName));
-        public readonly string ClassName = null;
+        public string ClassName => GetString(nameof(ClassName));
         public readonly string ChatId = null;
 
         public CourseDataConfig(JToken data)
