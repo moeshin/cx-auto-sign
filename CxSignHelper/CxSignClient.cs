@@ -148,14 +148,17 @@ namespace CxSignHelper
                 var courseId = match.Groups[1].Value;
                 var classId = match.Groups[2].Value;
                 var (courseName, className) = await GetClassDetailAsync(courseId, classId);
-                var obj = new JObject
+                var key = courseId + "-" + classId;
+                var obj = course[key];
+                if (obj is not { Type: JTokenType.Object })
                 {
-                    ["CourseId"] = courseId,
-                    ["ClassId"] = classId,
-                    ["CourseName"] = courseName,
-                    ["ClassName"] = className
-                };
-                course[courseId + "-" + classId] = obj;
+                    obj = new JObject();
+                    course[key] = obj;
+                }
+                obj["CourseId"] = courseId;
+                obj["ClassId"] = classId;
+                obj["CourseName"] = courseName;
+                obj["ClassName"] = className;
             }
         }
 

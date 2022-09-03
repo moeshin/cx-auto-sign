@@ -117,13 +117,13 @@ namespace cx_auto_sign
         {
             if (!Directory.Exists(Dir))
             {
-                Log.Debug("没有用户配置文件夹，并创建：{Dir}", Dir);
+                Log.Information("没有用户配置文件夹，并创建：{Dir}", Dir);
                 Directory.CreateDirectory(Dir);
-                Log.Debug("已创建用户配置文件夹：{Dir}", Dir);
+                Log.Information("已创建用户配置文件夹：{Dir}", Dir);
             }
-            Log.Debug("保存用户配置中...");
+            Log.Information("保存用户配置中...");
             File.WriteAllText(_path, _data.ToString());
-            Log.Debug("已保存用户配置");
+            Log.Information("已保存用户配置");
         }
 
         private void SetAuth(string key, string val)
