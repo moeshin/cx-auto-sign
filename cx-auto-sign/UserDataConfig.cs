@@ -158,15 +158,19 @@ namespace cx_auto_sign
             var convertList = new List<(string, string)>();
             foreach (var (key, value) in _courses)
             {
-                if (!regex.IsMatch(key))
+                if (!regex.IsMatch(key) || value == null)
                 {
                     continue;
                 }
-                var courseId = value?[nameof(CourseDataConfig.CourseId)]?.Value<string>();
-                var classId = value?[nameof(CourseDataConfig.ClassId)]?.Value<string>();
+                var courseId = value[nameof(CourseDataConfig.CourseId)]?.Value<string>();
+                var classId = value[nameof(CourseDataConfig.ClassId)]?.Value<string>();
                 if (string.IsNullOrWhiteSpace(courseId) || string.IsNullOrWhiteSpace(classId))
                 {
                     continue;
+                }
+                if (value[nameof(CourseDataConfig.ChatId)]?.Value<string>() == null)
+                {
+                    value[nameof(CourseDataConfig.ChatId)] = key;
                 }
                 var newKey = courseId + "-" + classId;
                 Log.Information("兼容旧版，转换键名：{Key} -> {NewKey}", 
