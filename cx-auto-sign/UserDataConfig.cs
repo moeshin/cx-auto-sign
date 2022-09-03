@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CxSignHelper;
 using Newtonsoft.Json.Linq;
@@ -73,16 +76,40 @@ namespace cx_auto_sign
             return _data;
         }
 
-        public CourseDataConfig GetCourse(string chatId)
+        public CourseDataConfig GetCourse(string key)
         {
-            var course = _courses?[chatId];
+            var course = _courses?[key];
             return course == null ? null : new CourseDataConfig(course);
         }
 
-        public JObject AddCourse(string chatId)
+        public CourseDataConfig GetCourseByChatId(string chatId)
+        {
+            var cfg = GetCourse(chatId);
+            if (cfg != null)
+            {
+                return cfg;
+            }
+            JToken course = null;
+            // ReSharper disable once InvertIf
+            if (_courses != null)
+            {
+                foreach (var (_, value) in _courses)
+                {
+                    // ReSharper disable once InvertIf
+                    if (value?[nameof(CourseDataConfig.ChatId)]?.Value<string>() == chatId)
+                    {
+                        course = value;
+                        break;
+                    }
+                }
+            }
+            return course == null ? null : new CourseDataConfig(course);
+        }
+
+        public JObject AddCourse(string key)
         {
             var course = new JObject();
-            _courses[chatId] = course;
+            _courses[key] = course;
             return course;
         }
 
@@ -127,15 +154,49 @@ namespace cx_auto_sign
                 Log.Information("成功登录账号");
             }
 
+            var regex = new Regex(@"^\d+$");
+            var convertList = new List<(string, string)>();
+            foreach (var (key, value) in _courses)
+            {
+                if (!regex.IsMatch(key))
+                {
+                    continue;
+                }
+                var courseId = value?[nameof(CourseDataConfig.CourseId)]?.Value<string>();
+                var classId = value?[nameof(CourseDataConfig.ClassId)]?.Value<string>();
+                if (string.IsNullOrWhiteSpace(courseId) || string.IsNullOrWhiteSpace(classId))
+                {
+                    continue;
+                }
+                var newKey = courseId + "-" + classId;
+                Log.Information("兼容旧版，转换键名：{Key} -> {NewKey}", 
+                    key, newKey);
+                convertList.Add((key, newKey));
+            }
+            if (convertList.Count > 0)
+            {
+                foreach (var (key, newKey) in convertList)
+                {
+                    _courses[newKey] = _courses[key];
+                    _courses.Remove(key);
+                }
+                Log.Information("保存转换结果");
+                Save();
+            }
+
             Log.Information("获取课程数据中...");
             await client.GetCoursesAsync(_courses);
             foreach (var (_, course) in _courses)
             {
+                if (course == null)
+                {
+                    continue;
+                }
                 Log.Information("发现课程：{CourseName}-{ClassName} ({CourseId}, {ClassId})",
-                    (string) course["CourseName"],
-                    (string) course["ClassName"],
-                    (string) course["CourseId"],
-                    (string) course["ClassId"]
+                    (string) course[nameof(CourseDataConfig.CourseName)],
+                    (string) course[nameof(CourseDataConfig.ClassName)],
+                    (string) course[nameof(CourseDataConfig.CourseId)],
+                    (string) course[nameof(CourseDataConfig.ClassId)]
                 );
             }
             Save();

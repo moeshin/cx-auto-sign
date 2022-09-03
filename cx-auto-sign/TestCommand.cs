@@ -17,7 +17,10 @@ namespace cx_auto_sign
         
         [Option("-i", Description = "配置中的 ChatId")]
         private string ChatId { get; }
-        
+
+        [Option("-k", Description = "配置中的课程的键名：CourseId-ClassId")]
+        private string Key { get; }
+
         [Option("-t", Description = "签到类型，0 普通签到，1 拍照签到，2 二维码签到，3 手势签到，4 位置签到")]
         private SignType Type { get; }
 
@@ -40,8 +43,18 @@ namespace cx_auto_sign
             var work = new SignWork(auConfig);
             var log = work.Log;
             log.Information("这是一个测试");
-            work.Start(Helper.GetTimestampS(), user, ChatId);
-            var course = userConfig.GetCourse(ChatId ?? "");
+            work.Start(Helper.GetTimestampS(), user);
+            CourseDataConfig course = null;
+            if (Key != null)
+            {
+                log.Information("Key: {Key}", Key);
+                course = userConfig.GetCourse(Key);
+            }
+            else if (ChatId != null)
+            {
+                log.Information("ChatId: {ChatId}", ChatId);
+                course = userConfig.GetCourseByChatId(ChatId);
+            }
             if (course == null)
             {
                 log.Warning("该课程不在课程列表");

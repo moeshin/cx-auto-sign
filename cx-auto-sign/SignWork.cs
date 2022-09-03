@@ -23,11 +23,14 @@ namespace cx_auto_sign
             Log = Notification.CreateLogger(auConfig, Helper.GetTimestampMs());
         }
 
-        public void Start(object time, string user, string chatId)
+        public void Start(object time, string user, string chatId = null)
         {
             Log.Information("消息时间：{Time}", time);
             Log.Information("用户：{User}", user);
-            Log.Information("ChatId：{ChatId}", chatId);
+            if (chatId != null)
+            {
+                Log.Information("ChatId：{ChatId}", chatId);
+            }
         }
 
         public void SetCourseConfig(CourseConfig config)

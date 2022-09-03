@@ -147,20 +147,19 @@ namespace CxSignHelper
                 }
                 var courseId = match.Groups[1].Value;
                 var classId = match.Groups[2].Value;
-                var (chatId, courseName, className) = await GetClassDetailAsync(courseId, classId);
+                var (courseName, className) = await GetClassDetailAsync(courseId, classId);
                 var obj = new JObject
                 {
                     ["CourseId"] = courseId,
                     ["ClassId"] = classId,
-                    ["ChatId"] = chatId,
                     ["CourseName"] = courseName,
                     ["ClassName"] = className
                 };
-                course[chatId] = obj;
+                course[courseId + "-" + classId] = obj;
             }
         }
 
-        private async Task<(string ChatId, string CourseName, string ClassName)> GetClassDetailAsync(string courseId, string classId)
+        private async Task<(string CourseName, string ClassName)> GetClassDetailAsync(string courseId, string classId)
         {
             var client = new RestClient($"https://mobilelearn.chaoxing.com/v2/apis/class/getClassDetail?fid={Fid}&courseId={courseId}&classId={classId}")
             {
@@ -174,10 +173,9 @@ namespace CxSignHelper
                 throw new Exception(json["msg"]?.Value<string>());
             }
             var data = json["data"];
-            var chatId = data!["chatid"]!.Value<string>();
-            var courseName = data["course"]!["data"]![0]!["name"]!.Value<string>();
+            var courseName = data!["course"]!["data"]![0]!["name"]!.Value<string>();
             var className = data["name"]!.Value<string>();
-            return (chatId, courseName, className);
+            return (courseName, className);
         }
 
         public async Task<string> UploadImageAsync(string path)

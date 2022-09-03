@@ -213,7 +213,7 @@ namespace cx_auto_sign
                                         {
                                             Log.Information(
                                                 "收到来自《{Name}》的群聊：{State}",
-                                                userConfig.GetCourse(chatId)?.CourseName,
+                                                userConfig.GetCourseByChatId(chatId)?.CourseName,
                                                 Cxim.CmdCourseChatFeedback.GetStateString(pkgBytes)
                                             );
                                             Log.Information(
@@ -294,6 +294,8 @@ namespace cx_auto_sign
                                     var aType = attCourse["atype"]?.Value<int>();
                                     log.Information("aType: {V}", aType);
                                     var courseName = courseInfo?["coursename"]?.Value<string>();
+                                    var courseId = courseInfo?["courseid"]?.Value<string>();
+                                    var classId = courseInfo?["classId"]?.Value<string>();
 
                                     {
                                         string type;
@@ -352,17 +354,22 @@ namespace cx_auto_sign
                                         continue;
                                     }
 
-                                    var course = userConfig.GetCourse(chatId);
+                                    var courseKey = courseId + "-" + classId;
+                                    var course = userConfig.GetCourse(courseKey) ??
+                                                 userConfig.GetCourseByChatId(chatId);
                                     if (course == null)
                                     {
                                         log.Warning("该课程不在课程列表");
-                                        var json = userConfig.AddCourse(chatId);
-                                        json[nameof(CourseDataConfig.CourseName)] = courseName;
-                                        json[nameof(CourseDataConfig.CourseId)]
-                                            = courseInfo?["courseid"]?.Value<string>();
-                                        json[nameof(CourseDataConfig.ClassId)] 
-                                            = courseInfo?["classid"]?.Value<string>();
-                                        course = new CourseDataConfig(json);
+                                        course = new CourseDataConfig(userConfig.AddCourse(courseKey));
+                                    }
+
+                                    var needSave = false;
+                                    needSave |= course.Set(nameof(CourseDataConfig.ChatId), chatId);
+                                    needSave |= course.Set(nameof(CourseDataConfig.CourseName), courseName);
+                                    needSave |= course.Set(nameof(CourseDataConfig.CourseId), courseId);
+                                    needSave |= course.Set(nameof(CourseDataConfig.ClassId), classId);
+                                    if (needSave)
+                                    {
                                         userConfig.Save();
                                     }
 
