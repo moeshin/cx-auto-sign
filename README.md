@@ -156,10 +156,10 @@ cx-auto-sign
 
 ```json5
 {
-  "ClassId": {        // 属性名为会话 Id，不建议修改
+  "CourseId-ClassId": {        // 键名格式为 CourseId-ClassId，不建议修改
+    "ChatId": "",     // 会话 Id，不建议修改
     "CourseId": "",   // 课程 Id，不建议修改
     "ClassId": "",    // 班级 Id，不建议修改
-    "ChatId": "",     // 会话 Id，不建议修改
     "CourseName": "", // 课程名，不建议修改
     "ClassName": "",  // 班级名，不建议修改
 
@@ -221,6 +221,7 @@ Options:
   -h|--help  Show help information
   -u         指定用户名（学号）
   -i         配置中的 ChatId
+  -k         配置中的课程的键名，格式为：CourseId-ClassId
   -t         签到类型，0 普通签到，1 拍照签到，2 二维码签到，3 手势签到，4 位置签到
   -d         日期时间，默认当前时间，用于拍照签到
 ```

@@ -18,7 +18,7 @@ namespace cx_auto_sign
         [Option("-i", Description = "配置中的 ChatId")]
         private string ChatId { get; }
 
-        [Option("-k", Description = "配置中的课程的键名：CourseId-ClassId")]
+        [Option("-k", Description = "配置中的课程的键名，格式为：CourseId-ClassId")]
         private string Key { get; }
 
         [Option("-t", Description = "签到类型，0 普通签到，1 拍照签到，2 二维码签到，3 手势签到，4 位置签到")]
