@@ -1,4 +1,4 @@
-ver=2.1.7
+ver=2.2.0
 ver_file=./cx-auto-sign/cx-auto-sign.csproj
 
 function set-ver() {
