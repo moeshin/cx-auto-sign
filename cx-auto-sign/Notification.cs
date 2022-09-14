@@ -14,6 +14,7 @@ namespace cx_auto_sign
     public class Notification : ILogEventSink
     {
         private const string Title = "cx-auto-sign 自动签到通知";
+        private static readonly string StartTime = ((long) Helper.GetTimestampMs()).ToString();
         private readonly StringBuilder _stringBuilder = new();
         private readonly UserConfig _userConfig;
         private readonly Logger _log;
@@ -46,7 +47,7 @@ namespace cx_auto_sign
                     if (_ok != null)
                     {
                         var status = _ok == true ? '✔' : '✖';
-                        _stringBuilder.Insert(0, "自动签到 " + status + '\n');
+                        _stringBuilder.Insert(0, "自动签到 " + status + "\n程序开始运行时间戳：" + StartTime + '\n');
                         _title = Title + ' ' + status;
                     }
                     var content = _stringBuilder.ToString();
