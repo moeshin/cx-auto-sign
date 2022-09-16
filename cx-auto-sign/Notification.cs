@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Text.RegularExpressions;
 using CxSignHelper;
 using MailKit.Net.Smtp;
 using MimeKit;
@@ -247,7 +248,19 @@ namespace cx_auto_sign
 
         private static void NotifyByTelegramBot(string token, string chatId, string text)
         {
-            var client = new RestClient($"https://api.telegram.org/bot{token}/sendMessage");
+            if (Regex.IsMatch(token, "^https?://"))
+            {
+                if (!token.EndsWith("/"))
+                {
+                    token += "/";
+                }
+            }
+            else
+            {
+                token = $"https://api.telegram.org/bot{token}/";
+            }
+            token += "sendMessage";
+            var client = new RestClient(token);
             var request = new RestRequest(Method.POST);
             request.AddJsonBody(new JObject
             {
