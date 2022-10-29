@@ -95,10 +95,10 @@ namespace cx_auto_sign
                     if (info.Type == ReconnectionType.Initial)
                     {
                         Log.Information("CXIM 已连接");
-                        _heartTimer.Interval = 30000;
+                        _heartTimer.Interval = 60000;
                         _heartTimer.Elapsed += (_, _) =>
                         {
-                            Log.Error("CXIM: 30s 内没有接收到心跳包");
+                            Log.Error("CXIM: 60s 内没有接收到心跳包");
                         };
                         _heartTimer.Start();
                         return;
