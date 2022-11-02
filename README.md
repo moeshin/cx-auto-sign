@@ -103,10 +103,18 @@ cx-auto-sign
   "PushPlusToken": "", // PushPlus 的 Token https://www.pushplus.plus/
   "BarkUrl": "", // Bark，例如：https://api.day.app/yourkey
 
-  // 电报 Telegram Bot 推送，可以在 应用配置 和 用户配置 中配置
+  // 电报 Telegram Bot 通知，可以在 应用配置 和 用户配置 中配置
   // 详见：https://gist.github.com/dideler/85de4d64f66c1966788c1b2304b9caf1
   "TelegramBotToken": "",
   "TelegramBotChatId": "",
+
+  // 企业微信通知
+  // https://developer.work.weixin.qq.com/document/path/91039
+  "WechatWorkAppComId": "",     // corpid
+  "WechatWorkAppComSecret": "", // corpsecret
+  // https://developer.work.weixin.qq.com/document/path/90236
+  "WechatWorkAppAgentId": -1,
+  "WechatWorkAppToUser": "@all",
 
   // 邮箱通知，可以在 应用配置 和 用户配置 中配置
   "Email": "",        // 接收通知的邮箱

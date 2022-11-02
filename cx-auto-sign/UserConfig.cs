@@ -15,6 +15,11 @@ namespace cx_auto_sign
         public readonly string TelegramBotToken;
         public readonly string TelegramBotChatId;
 
+        public readonly string WechatWorkAppComId;
+        public readonly string WechatWorkAppComSecret;
+        public readonly int WechatWorkAppAgentId;
+        public readonly string WechatWorkAppToUser;
+
         // Email
         public readonly string Email;
         public readonly string SmtpHost;
@@ -31,6 +36,11 @@ namespace cx_auto_sign
 
             [nameof(TelegramBotToken)] = "",
             [nameof(TelegramBotChatId)] = "",
+
+            [nameof(WechatWorkAppComId)] = "",
+            [nameof(WechatWorkAppComSecret)] = "",
+            [nameof(WechatWorkAppAgentId)] = 0,
+            [nameof(WechatWorkAppToUser)] = "@all",
 
             [nameof(Email)] = "",
             [nameof(SmtpHost)] = "",
@@ -51,6 +61,11 @@ namespace cx_auto_sign
             
             TelegramBotToken = GetMustString(nameof(TelegramBotToken));
             TelegramBotChatId = GetMustString(nameof(TelegramBotChatId));
+            
+            WechatWorkAppComId = GetMustString(nameof(WechatWorkAppComId));
+            WechatWorkAppComSecret = GetMustString(nameof(WechatWorkAppComSecret));
+            WechatWorkAppAgentId = GetInt(nameof(WechatWorkAppAgentId));
+            WechatWorkAppToUser = GetMustString(nameof(WechatWorkAppToUser));
 
             Email = GetMustString(nameof(Email));
             SmtpHost = GetString(nameof(SmtpHost));

@@ -57,6 +57,7 @@ namespace cx_auto_sign
                     NotifyByPushPlus(content);
                     NotifyByTelegramBot(content);
                     NotifyByBark(content);
+                    NotifyByWechatWorkApp(content);
                     return;
                 }
             }
@@ -77,6 +78,11 @@ namespace cx_auto_sign
         private string GetTitle()
         {
             return _title ?? Title;
+        }
+
+        private string GetContent(string content)
+        {
+            return GetTitle() + "\n" + content;
         }
 
         private static bool? GetBool(LogEvent logEvent, string name)
@@ -301,7 +307,7 @@ namespace cx_auto_sign
             {
                 _log.Information("正在发送 {Name} 通知", name);
                 NotifyByTelegramBot(_userConfig.TelegramBotToken, _userConfig.TelegramBotChatId,
-                    GetTitle() + "\n" + content);
+                    GetContent(content));
                 _log.Information("已发送 {Name} 通知", name);
             }
             catch (Exception e)
@@ -343,6 +349,79 @@ namespace cx_auto_sign
             {
                 _log.Information("正在发送 {Name} 通知", name);
                 NotifyBark(GetTitle(), content, _userConfig.BarkUrl);
+                _log.Information("已发送 {Name} 通知", name);
+            }
+            catch (Exception e)
+            {
+                _log.Error(e, "发送 {Name} 通知失败!", name);
+            }
+        }
+
+        private static string GetWechatWorkAppToken(string comId, string comSecret)
+        {
+            var client = new RestClient("https://qyapi.weixin.qq.com/cgi-bin/gettoken");
+            var request = new RestRequest(Method.GET);
+            request.AddQueryParameter("corpid", comId);
+            request.AddQueryParameter("corpsecret", comSecret);
+            var response = client.Execute(request);
+            CxSignClient.TestResponseCode(response);
+            var json = JObject.Parse(response.Content);
+            return json["access_token"]!.Value<string>();
+        }
+
+        private static void NotifyWechatWorkApp(string content, string token, int agentId, string toUser = "@all")
+        {
+            var client = new RestClient("https://qyapi.weixin.qq.com/cgi-bin/message/send");
+            var request = new RestRequest(Method.POST);
+            request.AddQueryParameter("access_token", token);
+            request.AddJsonBody(new JObject
+            {
+                ["enable_duplicate_check"] = 1,
+                ["agentid"] = agentId,
+                ["touser"] = toUser,
+                ["text"] = new JObject
+                {
+                    ["content"] = content
+                }
+            });
+            var response = client.Execute(request);
+            CxSignClient.TestResponseCode(response);
+        }
+
+        private void NotifyByWechatWorkApp(string content)
+        {
+            const string name = "企业微信";
+            if (string.IsNullOrEmpty(_userConfig.WechatWorkAppComId)) {
+                _log.Warning(
+                    "由于 {Key} 为空，没有发送 {Name} 通知",
+                    nameof(UserConfig.WechatWorkAppComId),
+                    name
+                );
+                return;
+            }
+            if (string.IsNullOrEmpty(_userConfig.WechatWorkAppComSecret)) {
+                _log.Warning(
+                    "由于 {Key} 为空，没有发送 {Name} 通知",
+                    nameof(UserConfig.WechatWorkAppComSecret),
+                    name
+                );
+                return;
+            }
+            if (_userConfig.WechatWorkAppAgentId == 0) {
+                _log.Warning(
+                    "由于 {Key} 为空，没有发送 {Name} 通知",
+                    nameof(UserConfig.WechatWorkAppAgentId),
+                    name
+                );
+                return;
+            }
+            try
+            {
+                _log.Information("正在发送 {Name} 通知", name);
+                var token
+                    = GetWechatWorkAppToken(_userConfig.WechatWorkAppComId, _userConfig.WechatWorkAppComSecret);
+                NotifyWechatWorkApp(GetContent(content), token,
+                    _userConfig.WechatWorkAppAgentId, _userConfig.WechatWorkAppToUser);
                 _log.Information("已发送 {Name} 通知", name);
             }
             catch (Exception e)
