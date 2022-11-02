@@ -374,8 +374,10 @@ namespace cx_auto_sign
             var client = new RestClient("https://qyapi.weixin.qq.com/cgi-bin/message/send");
             var request = new RestRequest(Method.POST);
             request.AddQueryParameter("access_token", token);
+            // request.AddQueryParameter("debug", "1");
             request.AddJsonBody(new JObject
             {
+                ["msgtype"] = "text",
                 ["enable_duplicate_check"] = 1,
                 ["agentid"] = agentId,
                 ["touser"] = toUser,
@@ -383,9 +385,14 @@ namespace cx_auto_sign
                 {
                     ["content"] = content
                 }
-            });
+            }.ToString());
             var response = client.Execute(request);
             CxSignClient.TestResponseCode(response);
+            var json = JObject.Parse(response.Content);
+            if (json["errcode"]?.Value<int>() != 0)
+            {
+                throw new Exception(response.Content);
+            }
         }
 
         private void NotifyByWechatWorkApp(string content)
