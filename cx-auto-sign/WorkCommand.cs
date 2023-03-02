@@ -178,6 +178,12 @@ namespace cx_auto_sign
                             try
                             {
                                 chatId = Cxim.GetChatId(pkgBytes);
+                                // Log.Information("CXIM ChatId: {ChatId}", chatId);
+                                if (string.IsNullOrEmpty(chatId))
+                                {
+                                    Log.Error("解析失败，无法获取 ChatId");
+                                    continue;
+                                }
                             }
                             catch (Exception e)
                             {
