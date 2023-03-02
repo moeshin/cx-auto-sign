@@ -25,6 +25,8 @@ namespace cx_auto_sign
 
         private readonly System.Timers.Timer _heartTimer = new();
 
+        private bool _heartPause;
+
         protected override async Task<int> OnExecuteAsync(CommandLineApplication app)
         {
             await Program.CheckUpdate();
@@ -98,7 +100,8 @@ namespace cx_auto_sign
                         _heartTimer.Interval = 60000;
                         _heartTimer.Elapsed += (_, _) =>
                         {
-                            Log.Error("CXIM: 60s 内没有接收到心跳包");
+                            _heartPause = true;
+                            Log.Warning("CXIM: 60s 内没有接收到心跳包");
                         };
                         _heartTimer.Start();
                         return;
@@ -118,7 +121,13 @@ namespace cx_auto_sign
                     try
                     {
                         // 对心跳包进行屏蔽，这部分导致日志膨胀且意义不大
-                        if(msg.Text.Length == 1 && msg.Text == "h"){
+                        if(msg.Text.Length == 1 && msg.Text == "h")
+                        {
+                            if (_heartPause)
+                            {
+                                _heartPause = false;
+                                Log.Information("CXIM: 恢复心跳");
+                            }
                             _heartTimer.Stop();
                             _heartTimer.Start();
                         }
